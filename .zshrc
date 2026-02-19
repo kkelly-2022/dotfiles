@@ -47,6 +47,12 @@ source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 [[ -f /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] && \
   source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
+# zsh-history-substring-search — type a partial command and use up/down arrows to search history for matches
+# Must be sourced after syntax-highlighting
+source /opt/homebrew/share/zsh-history-substring-search/zsh-history-substring-search.zsh
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+
 # eza — modern ls with git integration and tree view
 alias ls="eza"
 alias ll="eza -lahF --git"
@@ -75,26 +81,34 @@ SA_DATACORE=$SA/datacore
 SA_QUEUE=$SA/queue-consumer
 SA_MOBILE=$SA/mobile
 
+alias code-frontend="code $SA_FRONTEND"
+alias code-backend="code $SA_BACKEND"
+alias code-admin="code $SA_ADMIN"
+alias code-datacore="code $SA_DATACORE"
+alias code-crons="code $SA_CRONS"
+alias code-queue="code $SA_QUEUE"
+alias code-mobile="code $SA_MOBILE"
+
+
+codegen-backend() {
+  (
+    cd $SA_BACKEND &&
+    npm run prisma:migrate &&
+    npx prisma format &&
+    npm run prisma:generate &&
+    npm run generate:schema
+  )
+}
+
 
 # dev-sync — Migrate, generate, and codegen in one command
 # Runs backend migrations + Prisma generate, then triggers GraphQL codegen
 # across frontend, admin, and mobile (if the backend server is running).
 refresh-apps() {
-  (
-    cd $SA_BACKEND &&
-    npm run db:refresh -- -w root -f &&
-    npm run prisma:migrate &&
-    npx prisma format &&
-    npm run prisma:generate &&
-    npm run generate:schema &&
-    npm i &&
-    cd $SA_FRONTEND && 
-    npm i &&
-    cd $SA_ADMIN && 
-    npm i
-    cd $SA_DATACORE && 
-    uv sync
-  )
+  (cd $SA_BACKEND && npm run db:refresh -- -w root -f && codegen-backend && npm i)
+  (cd $SA_FRONTEND && npm i)
+  (cd $SA_ADMIN && npm i)
+  (cd $SA_DATACORE && uv sync)
 }
 
 # run-apps — Start backend, frontend, and admin in a tmux session
@@ -115,10 +129,8 @@ run-apps() {
   done
   echo "Backend is up — starting frontend and admin."
 
-  (
-    cd $SA_FRONTEND && npm i &&
-    cd $SA_ADMIN && npm i
-  )
+  (cd $SA_FRONTEND && npm i)
+  (cd $SA_ADMIN && npm i)
 
   tmux split-window -h -t sa:apps \
     "cd $SA_FRONTEND && npm run dev 2>&1 | tee $SA_LOGS/frontend.log"
