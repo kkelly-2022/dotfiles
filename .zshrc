@@ -61,6 +61,9 @@ alias catn="bat"  # with line numbers and full styling
 alias grep="rg"
 alias find="fd"
 
+# Global beads dir
+export BEADS_DIR="$HOME/Developer/beads/.beads"
+
 # ─── State Affairs workflow functions ─────────────────────────────────────────
 
 SA=~/Developer/state-affairs
