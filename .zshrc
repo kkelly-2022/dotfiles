@@ -92,6 +92,8 @@ refresh-apps() {
     npm i &&
     cd $SA_ADMIN && 
     npm i
+    cd $SA_DATACORE && 
+    uv sync
   )
 }
 
@@ -132,6 +134,7 @@ alias logs-backend="tail -f -n 200 $SA_LOGS/backend.log"
 alias logs-frontend="tail -f -n 200 $SA_LOGS/frontend.log"
 alias logs-admin="tail -f -n 200 $SA_LOGS/admin.log"
 alias logs-all="tail -f -n 200 $SA_LOGS/backend.log $SA_LOGS/frontend.log $SA_LOGS/admin.log"
+alias kill-apps="tmux kill-session -t sa"
 
 # sync-repos — Pull and sync all repos at once
 # Fetches and pulls main across all State Affairs repos, runs gt sync,
