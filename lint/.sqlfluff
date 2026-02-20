@@ -1,0 +1,44 @@
+[sqlfluff]
+dialect = postgres
+templater = raw
+max_line_length = 120
+
+[sqlfluff:indentation]
+indent_unit = space
+tab_space_size = 4
+indented_joins = false
+indented_ctes = true
+indented_using_on = true
+indented_on_contents = true
+
+# Leading commas
+[sqlfluff:layout:type:comma]
+spacing_before = touch
+line_position = leading
+
+[sqlfluff:layout:type:set_operator]
+line_position = alone:strict
+
+# Lowercase keywords, functions, identifiers, literals, types
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.identifiers]
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.functions]
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.literals]
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.types]
+extended_capitalisation_policy = lower
+
+# Prefer != over <>
+[sqlfluff:rules:convention.not_equal]
+preferred_not_equal_style = c_style
+
+# Require INNER JOIN not just JOIN
+[sqlfluff:rules:ambiguous.join]
+fully_qualify_join_types = inner
