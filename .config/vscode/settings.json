@@ -1,0 +1,130 @@
+{
+  // ── Terminal ──────────────────────────────────────────────
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.fontFamily": "CaskaydiaMono Nerd Font",
+  "terminal.external.osxExec": "Ghostty.app",
+
+  // ── Editor ────────────────────────────────────────────────
+  "files.autoSave": "afterDelay",
+  "editor.inlineSuggest.enabled": false,
+  "editor.formatOnSave": true,
+  "diffEditor.ignoreTrimWhitespace": false,
+  "workbench.panel.showLabels": false,
+  "terminal.integrated.cursorStyle": "line",
+
+  // ── Language-specific formatters ──────────────────────────
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
+  "[sql]": {
+    "editor.defaultFormatter": "sqlfluff.vscode-sqlfluff"
+  },
+
+  // ── Ruff (Python) ────────────────────────────────────────
+  "ruff.format.backend": "uv",
+
+  // ── SQLFluff (SQL) ────────────────────────────────────────
+  "sqlfluff.executablePath": "/Users/kevinkelly/.local/bin/sqlfluff",
+  "sqlfluff.config": "/Users/kevinkelly/Developer/dotfiles/lint/.sqlfluff",
+
+  // ── Claude Code ───────────────────────────────────────────
+  "claudeCode.preferredLocation": "panel",
+  "claudeCode.useTerminal": false,
+  "claudeCode.selectedModel": "default",
+  "claudeCode.allowDangerouslySkipPermissions": true,
+
+  // ── Disabled AI assistants ────────────────────────────────
+  "github.copilot.enable": {
+    "*": false
+  },
+  "github.copilot.nextEditSuggestions.enabled": false,
+  "github.copilot.chat.agent.currentEditorContext.enabled": false,
+  "chat.extensionUnification.enabled": false,
+  "accessibility.verbosity.inlineChat": false,
+  "inlineChat.holdToSpeech": false,
+  "inlineChat.lineNaturalLanguageHint": false,
+  "geminicodeassist.displayInlineContextHint": false,
+  "chatgpt.commentCodeLensEnabled": false,
+  "chatgpt.cliExecutable": "",
+
+  // ── Project Manager ───────────────────────────────────────
+  "projectManager.confirmSwitchOnActiveWindow": "always",
+  "projectManager.openInNewWindowWhenClickingInStatusBar": true,
+  "projectManager.openInCurrentWindowIfEmpty": "never",
+
+  // ── Find It Faster ────────────────────────────────────────
+  "find-it-faster.advanced.useEditorSelectionAsQuery": false,
+  "find-it-faster.general.restoreFocusTerminal": true,
+  "find-it-faster.general.hideTerminalAfterSuccess": false,
+  "find-it-faster.general.hideTerminalAfterFail": false,
+
+  // ── Peacock ───────────────────────────────────────────────
+  "peacock.elementAdjustments": {
+    "activityBar": "lighten",
+    "statusBar": "none",
+    "titleBar": "none"
+  },
+  "peacock.favoriteColors": [
+    { "name": "Red", "value": "#1f1618" },
+    { "name": "Blue", "value": "#16191d" },
+    { "name": "Yellow", "value": "#1c1b17" },
+    { "name": "Green", "value": "#161a17" },
+    { "name": "Pink", "value": "#1a161a" },
+    { "name": "Orange", "value": "#1c1816" },
+    { "name": "Purple", "value": "#1a161d" }
+  ],
+
+  // ── Spelling ──────────────────────────────────────────────
+  "cSpell.userWords": [
+    "autoflush",
+    "autoincrementing",
+    "Caskaydia",
+    "Chargebee",
+    "codegen",
+    "creds",
+    "Dataclasses",
+    "datacompy",
+    "datacore",
+    "dotenv",
+    "ENRICHABLE",
+    "firstparty",
+    "footgun",
+    "getset",
+    "Ghostty",
+    "Ingestor",
+    "ingestors",
+    "inspectable",
+    "Iosevka",
+    "kevinkelly",
+    "legiscan",
+    "Legistorm",
+    "leveragable",
+    "LOCALTIMESTAMP",
+    "notifs",
+    "nums",
+    "Optin",
+    "Prefiled",
+    "pydantic",
+    "sessionmaker",
+    "sqlacodegen",
+    "sqlalchemy",
+    "tsrange",
+    "upserted",
+    "upserts",
+    "uuidv",
+    "venvs",
+    "Votedetail"
+  ],
+
+  // ── Misc ──────────────────────────────────────────────────
+  "circleci.hostUrl": ""
+}

@@ -67,8 +67,22 @@ alias catn="bat"  # with line numbers and full styling
 alias grep="rg"
 alias find="fd"
 
+# Graphite — per-branch diff stats for current stack
+gt-stack-stats() {
+  gt log short --stack --no-interactive 2>&1 | awk '{print $NF}' | while read branch; do
+    parent=$(gt branch info "$branch" --no-interactive 2>/dev/null | awk '/Parent:/{print $2}')
+    if [ -n "$parent" ]; then
+      stats=$(git diff --shortstat "$parent...$branch" 2>/dev/null)
+      printf "%-55s %s\n" "$branch" "$stats"
+    fi
+  done
+}
+
 # Global beads dir
 export BEADS_DIR="$HOME/Developer/beads/.beads"
+
+DOTFILE_REPO=~/Developer/dotfiles
+alias code-dotfiles="code $DOTFILE_REPO"
 
 # ─── State Affairs workflow functions ─────────────────────────────────────────
 
@@ -89,6 +103,8 @@ alias code-crons="code $SA_CRONS"
 alias code-queue="code $SA_QUEUE"
 alias code-mobile="code $SA_MOBILE"
 
+alias psql-local="psql -h localhost -U postgres -d postgres"
+
 
 codegen-backend() {
   (
@@ -99,7 +115,6 @@ codegen-backend() {
     npm run generate:schema
   )
 }
-
 
 # dev-sync — Migrate, generate, and codegen in one command
 # Runs backend migrations + Prisma generate, then triggers GraphQL codegen
