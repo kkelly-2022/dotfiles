@@ -64,8 +64,24 @@ export BAT_THEME="Nord"
 alias cat="bat --style=plain --paging=never"
 alias catn="bat"  # with line numbers and full styling
 
-alias grep="rg"
-alias find="fd"
+function grep() {
+  local args=()
+  for arg in "$@"; do
+    case "$arg" in
+      -E) ;;                    # rg uses ERE by default
+      -r) args+=("--replace");;
+      -R) args+=("-r");;        # grep -R (recursive) → rg -r... but rg is recursive by default
+      *) args+=("$arg");;
+    esac
+  done
+  command rg "${args[@]}"
+}
+function find() { command fd "$@"; }
+
+# caffeinate — prevent sleep in a background tmux session
+alias caffeine="tmux new-session -d -s caffeine 'caffeinate -di'"
+alias kill-caffeine="tmux kill-session -t caffeine"
+alias check-caffeine="tmux has-session -t caffeine 2>/dev/null && echo 'Caffeine is running' || echo 'Caffeine is not running'"
 
 # Graphite — per-branch diff stats for current stack
 gt-stack-stats() {
@@ -83,6 +99,7 @@ export BEADS_DIR="$HOME/Developer/beads/.beads"
 
 DOTFILE_REPO=~/Developer/dotfiles
 alias code-dotfiles="code $DOTFILE_REPO"
+alias cd-dotfiles="cd $DOTFILE_REPO"
 
 # ─── State Affairs workflow functions ─────────────────────────────────────────
 
@@ -102,6 +119,13 @@ alias code-datacore="code $SA_DATACORE"
 alias code-crons="code $SA_CRONS"
 alias code-queue="code $SA_QUEUE"
 alias code-mobile="code $SA_MOBILE"
+alias cd-frontend="cd $SA_FRONTEND"
+alias cd-backend="cd $SA_BACKEND"
+alias cd-admin="cd $SA_ADMIN"
+alias cd-datacore="cd $SA_DATACORE"
+alias cd-crons="cd $SA_CRONS"
+alias cd-queue="cd $SA_QUEUE"
+alias cd-mobile="cd $SA_MOBILE"
 
 alias psql-local="psql -h localhost -U postgres -d postgres"
 
@@ -134,7 +158,7 @@ run-apps() {
   mkdir -p $SA_LOGS
 
   (cd $SA_BACKEND && npm i)
-
+``
   tmux new-session -d -s sa -n apps \
     "cd $SA_BACKEND && npm run dev 2>&1 | tee $SA_LOGS/backend.log"
 

@@ -25,16 +25,8 @@
   "[python]": {
     "editor.defaultFormatter": "charliermarsh.ruff"
   },
-  "[sql]": {
-    "editor.defaultFormatter": "sqlfluff.vscode-sqlfluff"
-  },
-
   // ── Ruff (Python) ────────────────────────────────────────
   "ruff.format.backend": "uv",
-
-  // ── SQLFluff (SQL) ────────────────────────────────────────
-  "sqlfluff.executablePath": "/Users/kevinkelly/.local/bin/sqlfluff",
-  "sqlfluff.config": "/Users/kevinkelly/Developer/dotfiles/lint/.sqlfluff",
 
   // ── Claude Code ───────────────────────────────────────────
   "claudeCode.preferredLocation": "panel",
