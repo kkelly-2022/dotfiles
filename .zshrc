@@ -8,7 +8,6 @@
 
 # Quality of life
 setopt AUTO_CD              # Type a directory name to cd into it
-setopt CORRECT              # Suggest corrections for typos
 setopt NO_CASE_GLOB         # Case-insensitive globbing
 setopt EXTENDED_GLOB        # More powerful pattern matching
 
