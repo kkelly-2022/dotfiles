@@ -36,7 +36,7 @@
 
   // ── Claude Code ───────────────────────────────────────────
   "claudeCode.preferredLocation": "panel",
-  "claudeCode.useTerminal": false,
+  "claudeCode.useTerminal": true,
   "claudeCode.selectedModel": "default",
   "claudeCode.allowDangerouslySkipPermissions": true,
 
