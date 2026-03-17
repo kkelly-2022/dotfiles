@@ -3,7 +3,6 @@
   "terminal.integrated.defaultProfile.osx": "zsh",
   "terminal.integrated.fontFamily": "CaskaydiaMono Nerd Font",
   "terminal.external.osxExec": "Ghostty.app",
-
   // ── Editor ────────────────────────────────────────────────
   "files.autoSave": "afterDelay",
   "editor.inlineSuggest.enabled": false,
@@ -11,38 +10,36 @@
   "diffEditor.ignoreTrimWhitespace": false,
   "workbench.panel.showLabels": false,
   "terminal.integrated.cursorStyle": "line",
-
   // ── Language-specific formatters ──────────────────────────
   "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "vscode.json-language-features",
   },
   "[html]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "[typescriptreact]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "[typescript]": {
-    "editor.defaultFormatter": "biomejs.biome"
+    "editor.defaultFormatter": "biomejs.biome",
   },
   "[python]": {
-    "editor.defaultFormatter": "charliermarsh.ruff"
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "diffEditor.ignoreTrimWhitespace": true,
   },
   // ── Ruff (Python) ────────────────────────────────────────
   "ruff.format.backend": "uv",
-
   // ── Claude Code ───────────────────────────────────────────
   "claudeCode.preferredLocation": "panel",
   "claudeCode.useTerminal": true,
   "claudeCode.selectedModel": "default",
   "claudeCode.allowDangerouslySkipPermissions": true,
-
   // ── Disabled AI assistants ────────────────────────────────
   "github.copilot.enable": {
-    "*": false
+    "*": false,
   },
   "github.copilot.nextEditSuggestions.enabled": false,
   "github.copilot.chat.agent.currentEditorContext.enabled": false,
@@ -53,34 +50,51 @@
   "geminicodeassist.displayInlineContextHint": false,
   "chatgpt.commentCodeLensEnabled": false,
   "chatgpt.cliExecutable": "",
-
   // ── Project Manager ───────────────────────────────────────
   "projectManager.confirmSwitchOnActiveWindow": "always",
   "projectManager.openInNewWindowWhenClickingInStatusBar": true,
   "projectManager.openInCurrentWindowIfEmpty": "never",
-
   // ── Find It Faster ────────────────────────────────────────
   "find-it-faster.advanced.useEditorSelectionAsQuery": false,
   "find-it-faster.general.restoreFocusTerminal": true,
   "find-it-faster.general.hideTerminalAfterSuccess": false,
   "find-it-faster.general.hideTerminalAfterFail": false,
-
   // ── Peacock ───────────────────────────────────────────────
   "peacock.elementAdjustments": {
     "activityBar": "lighten",
     "statusBar": "none",
-    "titleBar": "none"
+    "titleBar": "none",
   },
   "peacock.favoriteColors": [
-    { "name": "Red", "value": "#1f1618" },
-    { "name": "Blue", "value": "#16191d" },
-    { "name": "Yellow", "value": "#1c1b17" },
-    { "name": "Green", "value": "#161a17" },
-    { "name": "Pink", "value": "#1a161a" },
-    { "name": "Orange", "value": "#1c1816" },
-    { "name": "Purple", "value": "#1a161d" }
+    {
+      "name": "Red",
+      "value": "#1f1618"
+    },
+    {
+      "name": "Blue",
+      "value": "#16191d"
+    },
+    {
+      "name": "Yellow",
+      "value": "#1c1b17"
+    },
+    {
+      "name": "Green",
+      "value": "#161a17"
+    },
+    {
+      "name": "Pink",
+      "value": "#1a161a"
+    },
+    {
+      "name": "Orange",
+      "value": "#1c1816"
+    },
+    {
+      "name": "Purple",
+      "value": "#1a161d"
+    },
   ],
-
   // ── Spelling ──────────────────────────────────────────────
   "cSpell.userWords": [
     "autoflush",
@@ -89,9 +103,12 @@
     "Chargebee",
     "codegen",
     "creds",
+    "dagster",
     "Dataclasses",
     "datacompy",
     "datacore",
+    "Datom",
+    "datoms",
     "dotenv",
     "ENRICHABLE",
     "firstparty",
@@ -107,6 +124,7 @@
     "Legistorm",
     "leveragable",
     "LOCALTIMESTAMP",
+    "loggable",
     "notifs",
     "nums",
     "Optin",
@@ -120,9 +138,11 @@
     "upserts",
     "uuidv",
     "venvs",
-    "Votedetail"
+    "Votedetail",
   ],
-
+  // ── GitLens ──────────────────────────────────────────
+  "gitlens.rebaseEditor.enabled": false,
   // ── Misc ──────────────────────────────────────────────────
-  "circleci.hostUrl": ""
+  "circleci.hostUrl": "",
+  "explorer.confirmDelete": false,
 }

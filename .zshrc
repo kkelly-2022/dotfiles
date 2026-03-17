@@ -3,6 +3,8 @@
 
 . "$HOME/.local/bin/env"
 
+export BROWSER="/Applications/Firefox.app/Contents/MacOS/firefox"
+
 # Load local secrets (API keys, tokens, etc.) — not committed to git
 [[ -f ~/Developer/dotfiles/.env.local ]] && source ~/Developer/dotfiles/.env.local
 
@@ -110,6 +112,7 @@ SA_CRONS=$SA/crons
 SA_DATACORE=$SA/datacore
 SA_QUEUE=$SA/queue-consumer
 SA_MOBILE=$SA/mobile
+SA_KAFKA=$SA/kafka
 
 alias code-frontend="code $SA_FRONTEND"
 alias code-backend="code $SA_BACKEND"
@@ -118,6 +121,7 @@ alias code-datacore="code $SA_DATACORE"
 alias code-crons="code $SA_CRONS"
 alias code-queue="code $SA_QUEUE"
 alias code-mobile="code $SA_MOBILE"
+alias code-kafka="code $SA_KAFKA"
 alias cd-frontend="cd $SA_FRONTEND"
 alias cd-backend="cd $SA_BACKEND"
 alias cd-admin="cd $SA_ADMIN"
@@ -125,6 +129,8 @@ alias cd-datacore="cd $SA_DATACORE"
 alias cd-crons="cd $SA_CRONS"
 alias cd-queue="cd $SA_QUEUE"
 alias cd-mobile="cd $SA_MOBILE"
+
+alias datacore-prepush="uv run pre-commit run --hook-stage pre-push --from-ref origin/main --to-ref HEAD"
 
 alias psql-local="psql -h localhost -U postgres -d postgres"
 
@@ -198,6 +204,7 @@ sync-repos() {
     $SA_ADMIN
     $SA_QUEUE
     $SA_MOBILE
+    $SA_KAFKA
   )
 
   local synced=()
