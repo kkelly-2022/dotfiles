@@ -86,13 +86,26 @@ alias check-caffeine="tmux has-session -t caffeine 2>/dev/null && echo 'Caffeine
 
 # Graphite — per-branch diff stats for current stack
 gt-stack-stats() {
-  gt log short --stack --no-interactive 2>&1 | awk '{print $NF}' | while read branch; do
-    parent=$(gt branch info "$branch" --no-interactive 2>/dev/null | awk '/Parent:/{print $2}')
+  local i=0 total_ins=0 total_del=0 total_files=0
+  local branches=("${(@f)$(gt log short --stack --no-interactive 2>&1 | awk '{print $NF}')}")
+  for branch in "${branches[@]}"; do
+    local parent=$(gt branch info "$branch" --no-interactive 2>/dev/null | awk '/Parent:/{print $2}')
     if [ -n "$parent" ]; then
-      stats=$(git diff --shortstat "$parent...$branch" 2>/dev/null)
-      printf "%-55s %s\n" "$branch" "$stats"
+      i=$((i + 1))
+      local stats=$(git diff --shortstat "$parent...$branch" 2>/dev/null)
+      local files=$(echo "$stats" | rg -o '[0-9]+ file' | awk '{print $1}')
+      local ins=$(echo "$stats" | rg -o '[0-9]+ insertion' | awk '{print $1}')
+      local del=$(echo "$stats" | rg -o '[0-9]+ deletion' | awk '{print $1}')
+      total_files=$((total_files + ${files:-0}))
+      total_ins=$((total_ins + ${ins:-0}))
+      total_del=$((total_del + ${del:-0}))
+      printf "%2d. %-52s %s\n" "$i" "$branch" "$stats"
     fi
   done
+  if [ "$i" -gt 0 ]; then
+    printf "%s\n" "---"
+    printf "    %-52s %d PRs, %d files, +%d/-%d lines\n" "Total" "$i" "$total_files" "$total_ins" "$total_del"
+  fi
 }
 
 # Global beads dir
@@ -100,6 +113,7 @@ export BEADS_DIR="$HOME/Developer/beads/.beads"
 
 DOTFILE_REPO=~/Developer/dotfiles
 alias code-dotfiles="code $DOTFILE_REPO"
+alias code-plans="code ~/.claude/plans"
 alias cd-dotfiles="cd $DOTFILE_REPO"
 
 # ─── State Affairs workflow functions ─────────────────────────────────────────
