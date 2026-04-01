@@ -169,7 +169,13 @@ alias cd-crons="cd $SA_CRONS"
 alias cd-queue="cd $SA_QUEUE"
 alias cd-mobile="cd $SA_MOBILE"
 
-alias datacore-prepush="uv run pre-commit run --hook-stage pre-push --from-ref origin/main --to-ref HEAD"
+alias datacore-prepush-ruff="(cd $SA_DATACORE && uv run ruff check && uv run ruff format --check)"
+alias datacore-prepush-ruff-fix="(cd $SA_DATACORE && uv run ruff check --fix && uv run ruff format)"
+alias datacore-prepush-ty="(cd $SA_DATACORE && bash scripts/ty_check_pr_files.sh)"
+alias datacore-prepush-uv="(cd $SA_DATACORE && uv lock --check)"
+alias datacore-prepush-src="(cd $SA_DATACORE && bash scripts/lint_src_imports.sh --ratchet)"
+alias datacore-prepush-tests="(cd $SA_DATACORE && uv run python -m tests.run_unit_tests)"
+alias datacore-prepush="datacore-prepush-ruff && datacore-prepush-ty && datacore-prepush-uv && datacore-prepush-src && datacore-prepush-tests"
 
 alias psql-local="psql -h localhost -U postgres -d postgres"
 
