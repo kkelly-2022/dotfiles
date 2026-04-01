@@ -141,7 +141,12 @@
     "Votedetail",
   ],
   // ── GitLens ──────────────────────────────────────────
-  "gitlens.rebaseEditor.enabled": false,
+  "workbench.editorAssociations": [
+    {
+      "viewType": "default",
+      "filenamePattern": "git-rebase-todo"
+    }
+  ],
   // ── Misc ──────────────────────────────────────────────────
   "circleci.hostUrl": "",
   "explorer.confirmDelete": false,
