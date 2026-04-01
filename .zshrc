@@ -108,6 +108,31 @@ gt-stack-stats() {
   fi
 }
 
+# box — file/dir clipboard with absolute path preservation
+BOX_DIR="$HOME/.box"
+box() {
+  for arg in "$@"; do
+    local abs_path="${arg:a}"
+    local key="${abs_path#$HOME/}"
+    mkdir -p "$BOX_DIR/${key:h}"
+    rm -rf "$BOX_DIR/$key"
+    cp -r "$abs_path" "$BOX_DIR/$key"
+    echo "Boxed → ~/.box/$key"
+  done
+}
+unbox() {
+  for arg in "$@"; do
+    local abs_path="${arg:a}"
+    local key="${abs_path#$HOME/}"
+    [[ ! -e "$BOX_DIR/$key" ]] && echo "Nothing in box at $key" && continue
+    rm -rf "$abs_path"
+    cp -r "$BOX_DIR/$key" "$abs_path"
+    rm -rf "$BOX_DIR/$key"
+    echo "Unboxed ← ~/.box/$key"
+  done
+}
+lsbox() { eza --tree --level="${1:-4}" "$BOX_DIR" 2>/dev/null || echo "Box is empty"; }
+
 # Global beads dir
 export BEADS_DIR="$HOME/Developer/beads/.beads"
 
@@ -149,6 +174,20 @@ alias datacore-prepush="uv run pre-commit run --hook-stage pre-push --from-ref o
 alias psql-local="psql -h localhost -U postgres -d postgres"
 
 
+prisma-clean-migrations() {
+  local dir="${1:-.}/src/prisma/migrations"
+  [[ ! -d "$dir" ]] && echo "No migrations dir at $dir" && return 1
+  local removed=0
+  for d in "$dir"/*/; do
+    if [[ ! -s "$d/migration.sql" ]]; then
+      echo "Removing $(basename "$d")"
+      rm -rf "$d"
+      ((removed++))
+    fi
+  done
+  echo "Removed $removed empty migration(s)"
+}
+
 codegen-backend() {
   (
     cd $SA_BACKEND &&
@@ -159,11 +198,22 @@ codegen-backend() {
   )
 }
 
+gql-sync() {
+  (
+    cd $SA_BACKEND &&
+    npx graphql-inspector introspect http://localhost:3000/graphql \
+      --header "operationname: IntrospectionQuery" &&
+    cp graphql.schema.json $SA_DATACORE/utils/graphql/dc/graphql/generated/schema.json &&
+    cd $SA_DATACORE &&
+    uv run sgqlc-codegen schema utils/graphql/dc/graphql/generated/schema.json utils/graphql/dc/graphql/generated/generated_schema.py
+  )
+}
+
 # dev-sync — Migrate, generate, and codegen in one command
 # Runs backend migrations + Prisma generate, then triggers GraphQL codegen
 # across frontend, admin, and mobile (if the backend server is running).
 refresh-apps() {
-  (cd $SA_BACKEND && npm run db:refresh -- -w root -f && codegen-backend && npm i)
+  (cd $SA_BACKEND && prisma-clean-migrations . && npm run db:refresh -- -w root -f && codegen-backend && npm i)
   (cd $SA_FRONTEND && npm i)
   (cd $SA_ADMIN && npm i)
   (cd $SA_DATACORE && uv sync)
@@ -174,7 +224,7 @@ refresh-apps() {
 # Usage: run-apps (attach with `tmux attach -t sa` if detached)
 SA_LOGS=~/Developer/dotfiles/logs
 run-apps() {
-  mkdir -p $SA_LOGS
+  kill-apps && mkdir -p $SA_LOGS
 
   (cd $SA_BACKEND && npm i)
 ``
