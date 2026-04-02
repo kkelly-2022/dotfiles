@@ -165,4 +165,5 @@
     "*.s3db": "${capture}.${extname}-*"
   },
   "calva.paredit.defaultKeyMap": "strict",
+  "workbench.colorTheme": "Dark Modern",
 }

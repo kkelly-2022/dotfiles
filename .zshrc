@@ -29,6 +29,14 @@ setopt SHARE_HISTORY           # Share history between sessions
 setopt HIST_EXPIRE_DUPS_FIRST  # Expire duplicates first when trimming  
 setopt HIST_VERIFY             # Show command with history expansion
 
+# Filter noise and secrets from history
+zshaddhistory() {
+  [[ $1 != *debugpy/launcher* ]] &&
+  [[ $1 != *AWS_SESSION_TOKEN=* ]] &&
+  [[ $1 != *AWS_SECRET_ACCESS_KEY=* ]] &&
+  [[ $1 != *AWS_ACCESS_KEY_ID=* ]]
+}
+
 # Case-insensitive tab completion
 autoload -Uz compinit && compinit
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
