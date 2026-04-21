@@ -3,6 +3,10 @@
 
 . "$HOME/.local/bin/env"
 
+# Bun globals (including `pi`)
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
 export BROWSER="/Applications/Firefox.app/Contents/MacOS/firefox"
 
 # Load local secrets (API keys, tokens, etc.) — not committed to git
@@ -219,7 +223,8 @@ gql-sync() {
       --header "operationname: IntrospectionQuery" &&
     cp graphql.schema.json $SA_DATACORE/utils/graphql/dc/graphql/generated/schema.json &&
     cd $SA_DATACORE &&
-    uv run sgqlc-codegen schema utils/graphql/dc/graphql/generated/schema.json utils/graphql/dc/graphql/generated/generated_schema.py
+    uv run sgqlc-codegen schema utils/graphql/dc/graphql/generated/schema.json utils/graphql/dc/graphql/generated/generated_schema.py &&
+    ruff format utils/graphql/dc/graphql/generated/generated_schema.py
   )
 }
 
@@ -230,7 +235,7 @@ refresh-apps() {
   (cd $SA_BACKEND && prisma-clean-migrations . && npm run db:refresh -- -w root -f && codegen-backend && npm i)
   (cd $SA_FRONTEND && npm i)
   (cd $SA_ADMIN && npm i)
-  (cd $SA_DATACORE && uv sync)
+  (cd $SA_DATACORE && uv sync && ENV=local uv run -m database.bootstrap --migrate)
 }
 
 # run-apps — Start backend, frontend, and admin in a tmux session

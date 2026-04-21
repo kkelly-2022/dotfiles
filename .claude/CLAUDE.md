@@ -2,22 +2,6 @@
 
 We use `rg` and `fd` over `grep` and `find`.
 
-# Issue Tracking
-
-We use **bd (beads)** for issue tracking. We have a single beads repo for all of our projects
-at `~/Developer/beads/.beads` -- all issues will be tracked there. The `BEADS_DIR` should already 
-be pointing there.
-
-Run `bd prime` for workflow context, or install hooks (`bd hooks install`) for auto-injection.
-
-**Quick reference:**
-- `bd ready` - Find unblocked work
-- `bd create "Title" --type task --priority 2` - Create issue
-- `bd close <id>` - Complete work
-- `bd sync` - Sync with git (run at session end)
-
-For full workflow details: `bd prime`
-
 # Projects
 
 We have our work spread across several repos, all in `~/Developer/state-affairs`. Most of our work

@@ -1,11 +1,12 @@
 {
   // ── Terminal ──────────────────────────────────────────────
+  "python.terminal.activateEnvironment": false,
   "terminal.integrated.defaultProfile.osx": "zsh",
   "terminal.integrated.fontFamily": "CaskaydiaMono Nerd Font",
   "terminal.external.osxExec": "Ghostty.app",
   // ── Editor ────────────────────────────────────────────────
   "files.autoSave": "afterDelay",
-  "editor.inlineSuggest.enabled": false,
+  "editor.inlineSuggest.enabled": true,
   "editor.formatOnSave": true,
   "diffEditor.ignoreTrimWhitespace": false,
   "workbench.panel.showLabels": false,
@@ -166,4 +167,8 @@
   },
   "calva.paredit.defaultKeyMap": "strict",
   "workbench.colorTheme": "Dark Modern",
+  "continue.enableTabAutocomplete": false,
+  "chat.unifiedAgentsBar.enabled": true,
+  "workbench.secondarySideBar.defaultVisibility": "hidden",
+  "ty.completions.autoImport": false,
 }

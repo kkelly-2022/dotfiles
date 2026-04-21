@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+# Menu bar
+defaults -currentHost write -globalDomain NSStatusItemSpacing -int 2
+defaults -currentHost write -globalDomain NSStatusItemSelectionPadding -int 2
