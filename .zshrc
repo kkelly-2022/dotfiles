@@ -230,11 +230,24 @@ gql-sync() {
   )
 }
 
+# refresh-cleanup — run pre-migration data fixes on the local dev DB.
+# Invoked by refresh-apps between snapshot restore and prisma migrate,
+# but safe to run standalone after a failed migration.
+refresh-cleanup() {
+  local sql_file="$DOTFILE_REPO/scripts/refresh-cleanup.sql"
+  if [[ ! -f "$sql_file" ]]; then
+    echo "No cleanup file at $sql_file — skipping"
+    return 0
+  fi
+  PGPASSWORD=root psql -h localhost -p 5432 -U postgres -d dev \
+    -v ON_ERROR_STOP=1 -f "$sql_file"
+}
+
 # dev-sync — Migrate, generate, and codegen in one command
 # Runs backend migrations + Prisma generate, then triggers GraphQL codegen
 # across frontend, admin, and mobile (if the backend server is running).
 refresh-apps() {
-  (cd $SA_BACKEND && prisma-clean-migrations . && npm run db:refresh -- -w root -f && codegen-backend && npm i)
+  (cd $SA_BACKEND && prisma-clean-migrations . && npm run db:refresh -- -w root -f && refresh-cleanup && codegen-backend && npm i)
   (cd $SA_FRONTEND && npm i)
   (cd $SA_ADMIN && npm i)
   (cd $SA_DATACORE && uv sync && ENV=local uv run -m database.bootstrap --migrate)
