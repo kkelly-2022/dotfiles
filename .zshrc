@@ -143,7 +143,7 @@ unbox() {
     echo "Unboxed ← ~/.box/$key"
   done
 }
-lsbox() { eza --tree --level="${1:-4}" "$BOX_DIR" 2>/dev/null || echo "Box is empty"; }
+lsbox() { eza --tree --all --level="${1:-4}" "$BOX_DIR" 2>/dev/null || echo "Box is empty"; }
 
 # Global beads dir
 export BEADS_DIR="$HOME/Developer/beads/.beads"
@@ -188,6 +188,8 @@ alias datacore-prepush-uv="(cd $SA_DATACORE && uv lock --check)"
 alias datacore-prepush-src="(cd $SA_DATACORE && bash scripts/lint_src_imports.sh --ratchet)"
 alias datacore-prepush-tests="(cd $SA_DATACORE && uv run python -m tests.run_unit_tests)"
 alias datacore-prepush="uv run pre-commit run --hook-stage pre-push --from-ref origin/main --to-ref HEAD"
+alias datacore-prepush-ci="SKIP=unit-tests uv run pre-commit run --hook-stage pre-push --from-ref origin/main --to-ref HEAD && uv run python -m tests.run_unit_tests --ci"
+
 
 alias psql-local="psql -h localhost -U postgres -d postgres"
 
@@ -238,42 +240,47 @@ refresh-apps() {
   (cd $SA_DATACORE && uv sync && ENV=local uv run -m database.bootstrap --migrate)
 }
 
-# run-apps — Start backend, frontend, and admin in a tmux session
-# Each app gets its own pane with logs teed to ~/.logs/sa-*.log
-# Usage: run-apps (attach with `tmux attach -t sa` if detached)
+# run-apps — Start backend, frontend, and admin in a zellij session
+# Each app gets its own pane with logs teed to ~/Developer/dotfiles/logs/sa-*.log
+# Usage: run-apps (attach with `zellij attach sa` if detached)
 SA_LOGS=~/Developer/dotfiles/logs
 run-apps() {
   kill-apps && mkdir -p $SA_LOGS
 
   (cd $SA_BACKEND && npm i)
-``
-  tmux new-session -d -s sa -n apps \
-    "cd $SA_BACKEND && npm run dev 2>&1 | tee $SA_LOGS/backend.log"
-
-  echo "Waiting for backend to be ready..."
-  until curl -sf http://localhost:3000/api/health > /dev/null 2>&1; do
-    sleep 2
-  done
-  echo "Backend is up — starting frontend and admin."
-
   (cd $SA_FRONTEND && npm i)
   (cd $SA_ADMIN && npm i)
 
-  tmux split-window -h -t sa:apps \
-    "cd $SA_FRONTEND && npm run dev 2>&1 | tee $SA_LOGS/frontend.log"
+  local layout_file
+  layout_file=$(mktemp "${TMPDIR:-/tmp}/sa-zellij-layout.XXXXXX.kdl")
 
-  tmux split-window -v -t sa:apps.1 \
-    "cd $SA_ADMIN && npm run dev 2>&1 | tee $SA_LOGS/admin.log"
+  cat > "$layout_file" <<EOF
+layout {
+  pane split_direction="Vertical" {
+    pane command="bash" {
+      args "-lc" "cd $SA_BACKEND && npm run dev 2>&1 | tee $SA_LOGS/backend.log"
+    }
+    pane split_direction="Horizontal" {
+      pane command="bash" {
+        args "-lc" "until curl -sf http://localhost:3000/api/health > /dev/null 2>&1; do sleep 2; done; cd $SA_FRONTEND && npm run dev 2>&1 | tee $SA_LOGS/frontend.log"
+      }
+      pane command="bash" {
+        args "-lc" "until curl -sf http://localhost:3000/api/health > /dev/null 2>&1; do sleep 2; done; cd $SA_ADMIN && npm run dev 2>&1 | tee $SA_LOGS/admin.log"
+      }
+    }
+  }
+}
+EOF
 
-  tmux select-layout -t sa:apps main-vertical
-  tmux attach -t sa
+  zellij --new-session-with-layout "$layout_file" --session sa
+  rm -f "$layout_file"
 }
 
 alias logs-backend="tail -f -n 200 $SA_LOGS/backend.log"
 alias logs-frontend="tail -f -n 200 $SA_LOGS/frontend.log"
 alias logs-admin="tail -f -n 200 $SA_LOGS/admin.log"
 alias logs-all="tail -f -n 200 $SA_LOGS/backend.log $SA_LOGS/frontend.log $SA_LOGS/admin.log"
-alias kill-apps="tmux kill-session -t sa"
+alias kill-apps="zellij delete-session sa --force 2>/dev/null || true"
 
 # sync-repos — Pull and sync all repos at once
 # Fetches and pulls main across all State Affairs repos, runs gt sync,
@@ -321,4 +328,145 @@ sync-repos() {
   [[ ${#synced[@]} -gt 0 ]] && echo "  Synced: ${(j:, :)synced}"
   [[ ${#fetch_only[@]} -gt 0 ]] && echo "  Fetch only: ${(j:, :)fetch_only}"
   echo "========================================="
+}
+
+# dc-worktree — create/remove a Graphite worktree under datacore/.worktrees
+# Usage:
+#   dc-worktree <name>              create .worktrees/<name> on branch wt/<name>
+#   dc-worktree --rm [-f] <name>    remove worktree and its wt/<name> branch
+dc-worktree() {
+  if [[ "$(git rev-parse --show-toplevel 2>/dev/null)" != "$SA_DATACORE" ]]; then
+    echo "dc-worktree: must be run from $SA_DATACORE" >&2
+    return 1
+  fi
+
+  (
+    emulate -L bash
+    set -euo pipefail
+
+    local REPO_ROOT="$SA_DATACORE"
+    local WT_DIR="$REPO_ROOT/.worktrees"
+    local SYMLINK_FILES=(.env .env.local)
+    local SYMLINK_DIRS=(.venv output)
+
+    usage() {
+      cat <<EOF
+Usage:
+  dc-worktree <name>              Create a worktree for a feature
+  dc-worktree --rm [-f] <name>    Remove a worktree and its workspace branch
+
+Creates .worktrees/<name> with branch wt/<name> on the Graphite stack.
+EOF
+      exit 1
+    }
+
+    create_worktree() {
+      local name="$1"
+      local wt_path="$WT_DIR/$name"
+      local branch="wt/$name"
+
+      if [[ -d "$wt_path" ]]; then
+        echo "Error: worktree already exists at $wt_path" >&2
+        exit 1
+      fi
+
+      gt create "$branch"
+      gt checkout -
+
+      mkdir -p "$WT_DIR"
+      git worktree add "$wt_path" "$branch"
+
+      local f
+      for f in "${SYMLINK_FILES[@]}"; do
+        if [[ -f "$REPO_ROOT/$f" ]]; then
+          ln -s "../../$f" "$wt_path/$f"
+        fi
+      done
+
+      local d
+      for d in "${SYMLINK_DIRS[@]}"; do
+        if [[ -d "$REPO_ROOT/$d" ]]; then
+          ln -s "../../$d" "$wt_path/$d"
+        fi
+      done
+
+      echo ""
+      echo "Worktree ready at $wt_path"
+      echo ""
+      echo "  cd $wt_path"
+      echo "  gt create <first-branch-name>"
+      echo ""
+      echo "Before submitting, restack your first PR onto its target:"
+      echo "  gt move <first-branch> --onto <target>"
+    }
+
+    remove_worktree() {
+      local force=false
+      if [[ "${1:-}" == "-f" ]]; then
+        force=true
+        shift
+      fi
+
+      local name="${1:-}"
+      if [[ -z "$name" ]]; then
+        usage
+      fi
+
+      local wt_path="$WT_DIR/$name"
+      local branch="wt/$name"
+
+      if [[ ! -d "$wt_path" ]]; then
+        echo "Error: no worktree at $wt_path" >&2
+        exit 1
+      fi
+
+      if ! $force; then
+        local status
+        status="$(git -C "$wt_path" status --porcelain)"
+        if [[ -n "$status" ]]; then
+          echo "Error: worktree has uncommitted changes. Use -f to force." >&2
+          echo "$status" >&2
+          exit 1
+        fi
+      fi
+
+      local f
+      for f in "${SYMLINK_FILES[@]}" "${SYMLINK_DIRS[@]}"; do
+        [[ -L "$wt_path/$f" ]] && rm "$wt_path/$f"
+      done
+
+      if $force; then
+        git worktree remove --force "$wt_path"
+      else
+        git worktree remove "$wt_path"
+      fi
+
+      git branch -D "$branch" 2>/dev/null || true
+
+      echo "Removed worktree $name and branch $branch"
+      echo ""
+      echo "If you submitted PRs from this worktree, clean them up:"
+      echo "  gt branch delete <branch-name>"
+    }
+
+    if [[ $# -eq 0 ]]; then
+      usage
+    fi
+
+    case "$1" in
+      --rm)
+        shift
+        remove_worktree "$@"
+        ;;
+      -h|--help)
+        usage
+        ;;
+      *)
+        if [[ $# -ne 1 ]]; then
+          usage
+        fi
+        create_worktree "$1"
+        ;;
+    esac
+  )
 }

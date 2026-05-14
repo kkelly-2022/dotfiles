@@ -171,4 +171,11 @@
   "chat.unifiedAgentsBar.enabled": true,
   "workbench.secondarySideBar.defaultVisibility": "hidden",
   "ty.completions.autoImport": false,
+  "git.openRepositoryInParentFolders": "never",
+  "files.exclude": {
+    "**/.git": false,
+    "**/.hg": false,
+    "**/.svn": false,
+    "**/Thumbs.db": false
+  },
 }
