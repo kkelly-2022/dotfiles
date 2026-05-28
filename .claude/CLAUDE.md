@@ -15,6 +15,44 @@ We use graphite `gt --help` for stack diffing in these main state affairs projec
 commit code, modify/create PRs, or push/submit code without express consent from the user. Never add 
 'Co-Authored' comments to any commits/PRs you do create.
 
+## Postgres connections (State Affairs)
+
+When querying Postgres, use psql with one of these connections.
+Passwords live in `~/.pgpass` — never echo or interpolate them.
+
+| Env   | Access     | Host                                                                   | User         | DB           |
+|-------|------------|------------------------------------------------------------------------|--------------|--------------|
+| local | read/write | localhost                                                              | postgres     | dev          |
+| dev   | READ-ONLY  | sa-pro-app-dev-postgres.chujk1z74fw5.us-east-1.rds.amazonaws.com       | kkelly_read  | pro-app-dev  |
+| prod  | READ-ONLY  | read-sa-pro-app-prod-postgres.chujk1z74fw5.us-east-1.rds.amazonaws.com | kkelly_read  | pro-app-prod |
+
+Default to **local**. Only touch dev/prod when explicitly asked, and never
+attempt writes there (the role would reject them, but don't try).
+
+These roles can query any schema they have access to — not just one.
+When unsure what's available, introspect first:
+
+```
+# list schemas the role can see
+psql -h <host> -U <user> -d <db> -c "\dn"
+
+# list tables in a given schema
+psql -h <host> -U <user> -d <db> -c "\dt <schema>.*"
+
+# describe a specific table
+psql -h <host> -U <user> -d <db> -c "\d+ <schema>.<table>"
+
+# full search via information_schema
+psql -h <host> -U <user> -d <db> -c "
+SELECT table_schema, table_name
+FROM information_schema.tables
+WHERE table_schema NOT IN ('pg_catalog','information_schema')
+ORDER BY 1, 2;"
+```
+
+Always qualify table names with their schema (`schema.table`) unless the
+table is in the role's default `search_path`.
+
 # Coding
 
 **Tradeoff:** These coding guidelines bias toward caution over speed. For trivial tasks, use judgment.

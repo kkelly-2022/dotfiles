@@ -60,7 +60,15 @@
       "WebFetch(domain:www.senate.mo.gov)",
       "Bash(git config *)",
       "Bash(git worktree *)",
-      "Bash(git -C /Users/kevinkelly/Developer/state-affairs/datacore worktree list)"
+      "Bash(git -C /Users/kevinkelly/Developer/state-affairs/datacore worktree list)",
+      "Bash(psql -h localhost:*)",
+      "Bash(psql -h sa-pro-app-dev-postgres.chujk1z74fw5.us-east-1.rds.amazonaws.com:*)"
+    ],
+    "deny": [
+      "Bash(gt submit:*)",
+      "Bash(gt ss:*)",
+      "Bash(gt s:*)",
+      "Bash(git push:*)"
     ],
     "defaultMode": "auto"
   },
@@ -99,7 +107,7 @@
     "pr-review-toolkit@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true
   },
-  "effortLevel": "high",
+  "effortLevel": "xhigh",
   "skipDangerousModePermissionPrompt": true,
   "verbose": true,
   "autoCompactEnabled": false,
