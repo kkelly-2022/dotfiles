@@ -98,26 +98,38 @@ alias check-caffeine="tmux has-session -t caffeine 2>/dev/null && echo 'Caffeine
 
 # Graphite — per-branch diff stats for current stack
 gt-stack-stats() {
-  local i=0 total_ins=0 total_del=0 total_files=0
+  local total_ins=0 total_del=0 total_files=0
   local branches=("${(@f)$(gt log short --stack --no-interactive 2>&1 | awk '{print $NF}')}")
-  for branch in "${branches[@]}"; do
-    local parent=$(gt branch info "$branch" --no-interactive 2>/dev/null | awk '/Parent:/{print $2}')
-    if [ -n "$parent" ]; then
-      i=$((i + 1))
-      local stats=$(git diff --shortstat "$parent...$branch" 2>/dev/null)
-      local files=$(echo "$stats" | rg -o '[0-9]+ file' | awk '{print $1}')
-      local ins=$(echo "$stats" | rg -o '[0-9]+ insertion' | awk '{print $1}')
-      local del=$(echo "$stats" | rg -o '[0-9]+ deletion' | awk '{print $1}')
-      total_files=$((total_files + ${files:-0}))
-      total_ins=$((total_ins + ${ins:-0}))
-      total_del=$((total_del + ${del:-0}))
-      printf "%2d. %-52s %s\n" "$i" "$branch" "$stats"
-    fi
+  branches=("${(@)branches:#}")  # drop empty entries
+
+  # `gt log --stack` is linear (current → trunk), so each branch's parent is
+  # the next entry in the array and the last entry is the trunk. Skipping
+  # `gt branch info` (the slow part — ~1s for 16 branches) lets rows stream
+  # live as `git diff` finishes each one.
+  local total=$((${#branches[@]} - 1))
+  [[ $total -lt 1 ]] && return 0
+
+  local idx
+  for ((idx=1; idx<=total; idx++)); do
+    local branch="${branches[idx]}"
+    local parent="${branches[idx+1]}"
+    local stats=$(git diff --shortstat "$parent...$branch" 2>/dev/null)
+    local files=$(echo "$stats" | rg -o '[0-9]+ file' | awk '{print $1}')
+    local ins=$(echo "$stats" | rg -o '[0-9]+ insertion' | awk '{print $1}')
+    local del=$(echo "$stats" | rg -o '[0-9]+ deletion' | awk '{print $1}')
+    total_files=$((total_files + ${files:-0}))
+    total_ins=$((total_ins + ${ins:-0}))
+    total_del=$((total_del + ${del:-0}))
+    local file_word="files"
+    [ "${files:-0}" = "1" ] && file_word="file "
+    printf "%2d. | %3d %s | %7s | %7s | %s\n" \
+      $((total - idx + 1)) "${files:-0}" "$file_word" \
+      "+${ins:-0}" "-${del:-0}" "$branch"
   done
-  if [ "$i" -gt 0 ]; then
-    printf "%s\n" "---"
-    printf "    %-52s %d PRs, %d files, +%d/-%d lines\n" "Total" "$i" "$total_files" "$total_ins" "$total_del"
-  fi
+
+  printf "%s\n" "----+-----------+---------+---------+----------------"
+  printf "    | %3d files | %7s | %7s | %d PRs Total\n" \
+    "$total_files" "+$total_ins" "-$total_del" "$total"
 }
 
 # box — file/dir clipboard with absolute path preservation
