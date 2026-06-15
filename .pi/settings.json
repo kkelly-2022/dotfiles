@@ -3,38 +3,30 @@
     "agentOverrides": {
       "scout": {
         "model": "openai-codex/gpt-5.4-mini",
-        "fallbackModels": ["anthropic/claude-haiku-4-5"]
       },
       "researcher": {
         "model": "openai-codex/gpt-5.4-mini",
-        "fallbackModels": ["anthropic/claude-haiku-4-5"]
       },
       "delegate": {
         "model": "openai-codex/gpt-5.4-mini",
-        "fallbackModels": ["anthropic/claude-haiku-4-5"]
       },
       "context-builder": {
         "model": "openai-codex/gpt-5.4",
-        "fallbackModels": ["anthropic/claude-sonnet-4-5"]
       },
       "reviewer": {
         "model": "openai-codex/gpt-5.4",
         "thinking": "high",
-        "fallbackModels": ["anthropic/claude-sonnet-4-5"]
       },
       "worker": {
         "model": "openai-codex/gpt-5.4",
-        "fallbackModels": ["anthropic/claude-sonnet-4-5"]
       },
       "planner": {
         "model": "openai-codex/gpt-5.5",
         "thinking": "high",
-        "fallbackModels": ["anthropic/claude-opus-4-8"]
       },
       "oracle": {
         "model": "openai-codex/gpt-5.5",
         "thinking": "high",
-        "fallbackModels": ["anthropic/claude-opus-4-8"]
       }
     }
   }
