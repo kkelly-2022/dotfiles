@@ -1,0 +1,130 @@
+{
+  "debugLog": false,
+  "permissionReviewLog": true,
+  "yoloMode": false,
+  "toolInputPreviewMaxLength": 400,
+  "toolTextSummaryMaxLength": 120,
+  "permission": {
+    "*": "allow",
+    "path": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.pgpass": "deny",
+      "~/.pgpass": "deny",
+      "~/.ssh/*": "deny"
+    },
+    "bash": {
+      "*": "allow",
+      "command *": "ask",
+      "builtin *": "ask",
+      "env *": "ask",
+      "sh *": "ask",
+      "bash *": "ask",
+      "zsh *": "ask",
+      "fish *": "ask",
+      "xargs *": "ask",
+      "find * -exec *": "ask",
+      "git push *": {
+        "action": "deny",
+        "reason": "Remote pushes must be initiated by the user outside Pi."
+      },
+      "git * push *": {
+        "action": "deny",
+        "reason": "Remote pushes must be initiated by the user outside Pi."
+      },
+      "*/git push *": {
+        "action": "deny",
+        "reason": "Remote pushes must be initiated by the user outside Pi."
+      },
+      "*/git * push *": {
+        "action": "deny",
+        "reason": "Remote pushes must be initiated by the user outside Pi."
+      },
+      "env git push *": {
+        "action": "deny",
+        "reason": "Remote pushes must be initiated by the user outside Pi."
+      },
+      "env * git push *": {
+        "action": "deny",
+        "reason": "Remote pushes must be initiated by the user outside Pi."
+      },
+      "env git * push *": {
+        "action": "deny",
+        "reason": "Remote pushes must be initiated by the user outside Pi."
+      },
+      "env * git * push *": {
+        "action": "deny",
+        "reason": "Remote pushes must be initiated by the user outside Pi."
+      },
+      "command git push *": {
+        "action": "deny",
+        "reason": "Remote pushes must be initiated by the user outside Pi."
+      },
+      "command git * push *": {
+        "action": "deny",
+        "reason": "Remote pushes must be initiated by the user outside Pi."
+      },
+      "gt submit *": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "gt ss *": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "gt s *": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "gt * submit *": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "gt * ss *": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "gt * s *": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "*/gt submit *": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "*/gt ss *": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "*/gt s *": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "command gt submit *": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "command gt ss *": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "command gt s *": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "env gt submit *": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "env gt ss *": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "env gt s *": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      }
+    }
+  }
+}
