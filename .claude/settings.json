@@ -105,7 +105,16 @@
     "feature-dev@claude-plugins-official": true,
     "superpowers@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
-    "security-guidance@claude-plugins-official": true
+    "security-guidance@claude-plugins-official": true,
+    "plannotator@plannotator": true
+  },
+  "extraKnownMarketplaces": {
+    "plannotator": {
+      "source": {
+        "source": "github",
+        "repo": "backnotprop/plannotator"
+      }
+    }
   },
   "effortLevel": "xhigh",
   "skipDangerousModePermissionPrompt": true,

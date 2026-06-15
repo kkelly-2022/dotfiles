@@ -99,7 +99,11 @@ alias check-caffeine="tmux has-session -t caffeine 2>/dev/null && echo 'Caffeine
 # Graphite — per-branch diff stats for current stack
 gt-stack-stats() {
   local total_ins=0 total_del=0 total_files=0
-  local branches=("${(@f)$(gt log short --stack --no-interactive 2>&1 | awk '{print $NF}')}")
+  # Strip the tree-art prefix and any trailing parenthesized markers like
+  # (frozen), (needs restack), or a worktree name. $NF would grab the last
+  # paren group instead of the branch.
+  local branches=("${(@f)$(gt log short --stack --no-interactive 2>&1 \
+    | sed -E 's/^[^[:alnum:]_]*//; s/([[:space:]]+\([^)]*\))+[[:space:]]*$//')}")
   branches=("${(@)branches:#}")  # drop empty entries
 
   # `gt log --stack` is linear (current → trunk), so each branch's parent is
@@ -199,7 +203,7 @@ alias datacore-prepush-ty="(cd $SA_DATACORE && bash scripts/ty_check_pr_files.sh
 alias datacore-prepush-uv="(cd $SA_DATACORE && uv lock --check)"
 alias datacore-prepush-src="(cd $SA_DATACORE && bash scripts/lint_src_imports.sh --ratchet)"
 alias datacore-prepush-tests="(cd $SA_DATACORE && uv run python -m tests.run_unit_tests)"
-alias datacore-prepush="uv run pre-commit run --hook-stage pre-push --from-ref origin/main --to-ref HEAD"
+alias datacore-prepush=".githooks/pre-push"
 alias datacore-prepush-ci="SKIP=unit-tests uv run pre-commit run --hook-stage pre-push --from-ref origin/main --to-ref HEAD && uv run python -m tests.run_unit_tests --ci"
 
 
@@ -328,9 +332,13 @@ SA_LOGS=~/Developer/dotfiles/logs
 run-apps() {
   kill-apps && mkdir -p $SA_LOGS
 
-  (cd $SA_BACKEND && npm i)
-  (cd $SA_FRONTEND && npm i)
-  (cd $SA_ADMIN && npm i)
+  # Backend pnpm install runs alone — pnpm's symlink workers race under
+  # concurrent system load. The two npm installs can safely run in parallel
+  # since they have separate node_modules and don't share global state.
+  (cd $SA_BACKEND && pnpm i)
+  (cd $SA_FRONTEND && npm i) &
+  (cd $SA_ADMIN && npm i) &
+  wait
 
   local layout_file
   layout_file=$(mktemp "${TMPDIR:-/tmp}/sa-zellij-layout.XXXXXX.kdl")
@@ -339,7 +347,7 @@ run-apps() {
 layout {
   pane split_direction="Vertical" {
     pane command="bash" {
-      args "-lc" "cd $SA_BACKEND && npm run dev 2>&1 | tee $SA_LOGS/backend.log"
+      args "-lc" "cd $SA_BACKEND && pnpm run dev 2>&1 | tee $SA_LOGS/backend.log"
     }
     pane split_direction="Horizontal" {
       pane command="bash" {

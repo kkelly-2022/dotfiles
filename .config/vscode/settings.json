@@ -1,4 +1,8 @@
 {
+  "git.repositoryScanMaxDepth": 2,
+  "git.scanRepositories": [
+    ".worktrees/*"
+  ],
   // ── Terminal ──────────────────────────────────────────────
   "python.terminal.activateEnvironment": false,
   "terminal.integrated.defaultProfile.osx": "zsh",
@@ -178,4 +182,5 @@
     "**/.svn": false,
     "**/Thumbs.db": false
   },
+  "git.detectWorktrees": true,
 }

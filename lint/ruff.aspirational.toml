@@ -1,0 +1,98 @@
+# Aspirational ruff config — every lint rule we plan to enforce on the datacore
+# codebase (base + ratchet stack + Phases 1/2/3 of the long-term roadmap).
+#
+# Not used by the project's CI or pre-push hooks — for ad-hoc local checks
+# against changed files while the enforcement stack is being built out.
+# See <datacore>/docs/ruff_tier12_analysis.md for the roadmap.
+#
+# Usage:
+#   uv run ruff check --config ~/Developer/dotfiles/lint/ruff.aspirational.toml <files>
+#
+# Shell helper (add to .zshrc):
+#   ruff-aspire() {
+#       local base="${1:-main}"
+#       local files
+#       files=$(git diff --name-only --diff-filter=ACMRTUXB "${base}...HEAD" -- '*.py' 2>/dev/null)
+#       [[ -z "$files" ]] && { echo "no changed .py files vs $base"; return 0; }
+#       echo "$files" | xargs uv run ruff check --config ~/Developer/dotfiles/lint/ruff.aspirational.toml
+#   }
+#
+# Self-contained (not extending datacore's ruff.toml) so it works from any
+# worktree and survives base-config drift. Update the select list as rules
+# graduate into the project's real ruff.toml.
+
+[lint]
+select = [
+    # ── Already enforced (base ruff.toml) ────────────────────────────────
+    "E",        # pycodestyle errors
+    "F",        # pyflakes
+    "W",        # pycodestyle warnings
+    "ANN",      # flake8-annotations (missing/return type annotations)
+    "I",        # isort
+
+    # ── PR 0 freebies (zero-violation, ready to merge) ───────────────────
+    "TID",      # tidy-imports (default: bans `..` parent-relative imports)
+    "FAST",     # FastAPI best practices
+    "T10",      # bans breakpoint() / pdb
+    "NPY",      # numpy-specific idioms
+
+    # ── Stack queue (PRs 4–7 from the ratchet stack) ─────────────────────
+    "SLF",      # flake8-self: private member access from outside the class
+    "B",        # flake8-bugbear: real bugs (B008 mutable defaults, B904 raise-from, …)
+    "DTZ",      # flake8-datetimez: tz-aware datetime usage (couples with dc.dateutil)
+    # PLC0415 covered by "PLC" below.
+
+    # ── Phase 1 — Weekend autofixes (mechanical --fix passes) ────────────
+    "UP",       # pyupgrade modernizations
+    "TC",       # type-checking import moves (under TYPE_CHECKING)
+    "EM",       # exception messages as variables
+    "RUF",      # Ruff-specific (RUF022 __all__, RUF100 unused noqa, RUF010 str() in f-string, …)
+    "PTH",      # use pathlib over os.path
+    "RET",      # return cleanup (RET505 else-after-return, RET504 assign-before-return)
+    "PD",       # pandas-vet (.values → .to_numpy())
+    "PIE",      # PIE790 unnecessary pass, PIE810 startswith-tuple, PIE794 duplicate fields, …
+    "C4",       # comprehension simplifications
+    "INP",      # missing __init__.py (implicit namespace packages)
+    # PLR1xxx high-signal subset (NOT the noisy PLR0xxx series):
+    "PLR5501",  # collapsible elif
+    "PLR1714",  # x == a or x == b → x in (a, b)
+    "PLR1722",  # exit() → sys.exit()
+    "PLR1730",  # if x < y: x = y → x = max(x, y)
+    "PLR0402",  # import a.b as b → from a import b
+    "PLR2044",  # empty noqa
+
+    # ── Phase 2 — Easy manual fixes (small counts) ───────────────────────
+    "ASYNC",    # blocking I/O / HTTP in async fns
+    "ICN",      # import-conventions (numpy as np, pandas as pd, etree as ET)
+    "PLC",      # Pylint convention (includes PLC0415 import-outside-toplevel)
+    "PGH",      # vague # type: ignore / # noqa
+    "PLE",      # Pylint errors (zero-width chars, bare raise, …)
+    "LOG",      # root logger calls
+    "ISC",      # implicit string concat issues
+
+    # ── Phase 3 — Future ratchets ─────────────────────────────────────────
+    "BLE",      # blind except (silent failures)
+    "TRY",      # tryceratops (TRY400 logger.exception, TRY003 long messages, …)
+    "S",        # bandit security
+    "T20",      # print statements
+    "C901",     # mccabe cyclomatic complexity
+    "SIM",      # flake8-simplify
+    "PLW",      # Pylint warnings (subprocess check=, global, loop var, …)
+    "PERF",     # Perflint (PERF401 manual list comp)
+    "N",        # pep8-naming
+    "A",        # builtin shadowing
+    "G",        # logging-format (G004 f-string in log call) — the big one
+]
+
+ignore = [
+    "ANN401",   # allow `Any` — same as base ruff.toml
+]
+
+[lint.mccabe]
+max-complexity = 15  # C901 threshold — see ruff_tier12_analysis.md "C901 deep dive"
+
+[lint.per-file-ignores]
+# Tests legitimately exercise patterns these rules catch.
+"**/_tests/**" = ["SLF", "DTZ", "S101", "S108", "T20"]
+"tests/**"     = ["SLF", "DTZ", "S101", "S108", "T20"]
+"**/test_*.py" = ["SLF", "DTZ", "S101", "S108", "T20"]
