@@ -99,15 +99,25 @@ alias check-caffeine="tmux has-session -t caffeine 2>/dev/null && echo 'Caffeine
 # Graphite — per-branch diff stats for current stack
 gt-stack-stats() {
   local total_ins=0 total_del=0 total_files=0
-  # Strip the tree-art prefix and any trailing parenthesized markers like
-  # (frozen), (needs restack), or a worktree name. $NF would grab the last
-  # paren group instead of the branch.
-  local branches=("${(@f)$(gt log short --stack --no-interactive 2>&1 \
-    | sed -E 's/^[^[:alnum:]_]*//; s/([[:space:]]+\([^)]*\))+[[:space:]]*$//')}")
-  branches=("${(@)branches:#}")  # drop empty entries
+  # Strip only the tree-art prefix for display labels so Graphite markers like
+  # (frozen), (needs restack), and worktree names remain visible. Keep an
+  # aligned marker-free ref array for Git, because `git diff` needs real branch
+  # refs and cannot resolve labels such as `branch-name (needs restack)`.
+  local -a branches branch_labels stack_rows
+  stack_rows=("${(@f)$(gt log short --stack --no-interactive 2>&1 \
+    | sed -E 's/^[^[:alnum:]_]*//')}")
+
+  local row clean_ref
+  for row in "${stack_rows[@]}"; do
+    [[ -z "$row" ]] && continue
+    clean_ref=$(printf "%s\n" "$row" | sed -E 's/([[:space:]]+\([^)]*\))+[[:space:]]*$//')
+    [[ -z "$clean_ref" ]] && continue
+    branches+=("$clean_ref")
+    branch_labels+=("$row")
+  done
 
   # `gt log --stack` is linear (current → trunk), so each branch's parent is
-  # the next entry in the array and the last entry is the trunk. Skipping
+  # the next clean ref in the array and the last entry is the trunk. Skipping
   # `gt branch info` (the slow part — ~1s for 16 branches) lets rows stream
   # live as `git diff` finishes each one.
   local total=$((${#branches[@]} - 1))
@@ -117,6 +127,7 @@ gt-stack-stats() {
   for ((idx=1; idx<=total; idx++)); do
     local branch="${branches[idx]}"
     local parent="${branches[idx+1]}"
+    local branch_label="${branch_labels[idx]}"
     local stats=$(git diff --shortstat "$parent...$branch" 2>/dev/null)
     local files=$(echo "$stats" | rg -o '[0-9]+ file' | awk '{print $1}')
     local ins=$(echo "$stats" | rg -o '[0-9]+ insertion' | awk '{print $1}')
@@ -128,12 +139,85 @@ gt-stack-stats() {
     [ "${files:-0}" = "1" ] && file_word="file "
     printf "%2d. | %3d %s | %7s | %7s | %s\n" \
       $((total - idx + 1)) "${files:-0}" "$file_word" \
-      "+${ins:-0}" "-${del:-0}" "$branch"
+      "+${ins:-0}" "-${del:-0}" "$branch_label"
   done
 
   printf "%s\n" "----+-----------+---------+---------+----------------"
   printf "    | %3d files | %7s | %7s | %d PRs Total\n" \
     "$total_files" "+$total_ins" "-$total_del" "$total"
+}
+
+# gt-restack-all — restack every clean worktree in the current repo
+# Usage:
+#   gt-restack-all
+#
+# Runs `gt restack --interactive` in each worktree for the current Git repo.
+# Worktrees with staged, unstaged, or untracked changes are skipped. On the
+# first restack failure/conflict, the loop stops so you can resolve it there.
+gt-restack-all() {
+  local repo_root
+  repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || {
+    echo "gt-restack-all: must be run inside a Git repository" >&2
+    return 1
+  }
+
+  local -a worktrees restacked skipped
+  local failed_worktree="" failed_branch=""
+  worktrees=("${(@f)$(git -C "$repo_root" worktree list --porcelain 2>/dev/null \
+    | awk '/^worktree / { sub(/^worktree /, ""); print }')}")
+
+  if [[ ${#worktrees[@]} -eq 0 ]]; then
+    echo "gt-restack-all: no worktrees found for $repo_root" >&2
+    return 1
+  fi
+
+  echo "Restacking ${#worktrees[@]} worktree(s) for $repo_root"
+
+  local worktree branch worktree_status restack_status
+  for worktree in "${worktrees[@]}"; do
+    branch=$(git -C "$worktree" branch --show-current 2>/dev/null)
+    [[ -z "$branch" ]] && branch="detached:$(git -C "$worktree" rev-parse --short HEAD 2>/dev/null)"
+
+    echo ""
+    echo "--- $branch ---"
+    echo "$worktree"
+
+    worktree_status=$(git -C "$worktree" status --porcelain --untracked-files=all)
+    if [[ -n "$worktree_status" ]]; then
+      echo "Skipping: worktree has staged, unstaged, or untracked changes"
+      skipped+=("$branch ($worktree)")
+      continue
+    fi
+
+    (cd "$worktree" && gt restack --interactive)
+    restack_status=$?
+    if [[ $restack_status -ne 0 ]]; then
+      failed_worktree="$worktree"
+      failed_branch="$branch"
+      echo ""
+      echo "gt-restack-all: stopped after restack failed in $worktree"
+      echo "Resolve the Graphite/Git state there, then continue from that worktree:"
+      echo "  cd '$worktree'"
+      echo "  # resolve conflicts, then: gt add <file> ... && gt continue"
+      echo "  # or abort with: gt abort"
+      break
+    fi
+
+    restacked+=("$branch ($worktree)")
+  done
+
+  echo ""
+  echo "========================================="
+  echo "Restacked: ${#restacked[@]} worktree(s)"
+  [[ ${#restacked[@]} -gt 0 ]] && printf '  %s\n' "${restacked[@]}"
+  echo "Skipped dirty: ${#skipped[@]} worktree(s)"
+  [[ ${#skipped[@]} -gt 0 ]] && printf '  %s\n' "${skipped[@]}"
+  if [[ -n "$failed_worktree" ]]; then
+    echo "Failed/stopped: $failed_branch ($failed_worktree)"
+    echo "========================================="
+    return $restack_status
+  fi
+  echo "========================================="
 }
 
 # box — file/dir clipboard with absolute path preservation

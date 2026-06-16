@@ -19,10 +19,12 @@
       "command *": "ask",
       "builtin *": "ask",
       "env *": "ask",
-      "sh *": "ask",
-      "bash *": "ask",
-      "zsh *": "ask",
-      "fish *": "ask",
+      "sh -c *": "ask",
+      "bash -c *": "ask",
+      "bash -lc *": "ask",
+      "zsh -c *": "ask",
+      "zsh -lc *": "ask",
+      "fish -c *": "ask",
       "xargs *": "ask",
       "find * -exec *": "ask",
       "git push *": {
@@ -122,6 +124,582 @@
         "reason": "Graphite submissions must be initiated by the user outside Pi."
       },
       "env gt s *": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c 'gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c 'gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c 'command gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c 'command gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c 'env gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c 'env gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c 'gt s'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c 'gt s *'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c 'command gt s'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c 'command gt s *'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c 'env gt s'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c 'env gt s *'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c \"gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c \"gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c \"command gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c \"command gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c \"env gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c \"env gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c \"gt s\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c \"gt s *\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c \"command gt s\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c \"command gt s *\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c \"env gt s\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "sh -c \"env gt s *\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c 'gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c 'gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c 'command gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c 'command gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c 'env gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c 'env gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c 'gt s'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c 'gt s *'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c 'command gt s'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c 'command gt s *'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c 'env gt s'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c 'env gt s *'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c \"gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c \"gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c \"command gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c \"command gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c \"env gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c \"env gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c \"gt s\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c \"gt s *\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c \"command gt s\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c \"command gt s *\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c \"env gt s\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -c \"env gt s *\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc 'gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc 'gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc 'command gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc 'command gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc 'env gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc 'env gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc 'gt s'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc 'gt s *'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc 'command gt s'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc 'command gt s *'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc 'env gt s'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc 'env gt s *'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc \"gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc \"gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc \"command gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc \"command gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc \"env gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc \"env gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc \"gt s\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc \"gt s *\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc \"command gt s\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc \"command gt s *\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc \"env gt s\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "bash -lc \"env gt s *\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c 'gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c 'gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c 'command gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c 'command gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c 'env gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c 'env gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c 'gt s'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c 'gt s *'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c 'command gt s'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c 'command gt s *'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c 'env gt s'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c 'env gt s *'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c \"gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c \"gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c \"command gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c \"command gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c \"env gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c \"env gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c \"gt s\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c \"gt s *\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c \"command gt s\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c \"command gt s *\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c \"env gt s\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -c \"env gt s *\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc 'gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc 'gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc 'command gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc 'command gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc 'env gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc 'env gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc 'gt s'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc 'gt s *'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc 'command gt s'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc 'command gt s *'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc 'env gt s'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc 'env gt s *'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc \"gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc \"gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc \"command gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc \"command gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc \"env gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc \"env gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc \"gt s\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc \"gt s *\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc \"command gt s\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc \"command gt s *\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc \"env gt s\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "zsh -lc \"env gt s *\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c 'gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c 'gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c 'command gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c 'command gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c 'env gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c 'env gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c 'gt s'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c 'gt s *'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c 'command gt s'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c 'command gt s *'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c 'env gt s'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c 'env gt s *'": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c \"gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c \"gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c \"command gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c \"command gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c \"env gt submit*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c \"env gt ss*": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c \"gt s\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c \"gt s *\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c \"command gt s\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c \"command gt s *\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c \"env gt s\"": {
+        "action": "deny",
+        "reason": "Graphite submissions must be initiated by the user outside Pi."
+      },
+      "fish -c \"env gt s *\"": {
         "action": "deny",
         "reason": "Graphite submissions must be initiated by the user outside Pi."
       }
