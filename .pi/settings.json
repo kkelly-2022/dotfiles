@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.79.6",
+  "lastChangelogVersion": "0.79.7",
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.5",
   "defaultThinkingLevel": "medium",
@@ -17,18 +17,41 @@
     "agentOverrides": {
       "scout": {
         "model": "ollama/gemma4:latest",
-        "fallbackModels": ["openai-codex/gpt-5.4-mini"],
-        "tools": ["read", "grep", "find", "ls", "bash"]
+        "fallbackModels": [
+          "openai-codex/gpt-5.4-mini"
+        ],
+        "tools": [
+          "read",
+          "grep",
+          "find",
+          "ls",
+          "bash"
+        ]
       },
       "delegate": {
         "model": "ollama/gemma4:latest",
-        "fallbackModels": ["openai-codex/gpt-5.4-mini"],
-        "tools": ["read", "grep", "find", "ls"]
+        "fallbackModels": [
+          "openai-codex/gpt-5.4-mini"
+        ],
+        "tools": [
+          "read",
+          "grep",
+          "find",
+          "ls"
+        ]
       },
       "context-builder": {
         "model": "ollama/gemma4:latest",
-        "fallbackModels": ["openai-codex/gpt-5.4"],
-        "tools": ["read", "grep", "find", "ls", "bash"]
+        "fallbackModels": [
+          "openai-codex/gpt-5.4"
+        ],
+        "tools": [
+          "read",
+          "grep",
+          "find",
+          "ls",
+          "bash"
+        ]
       },
       "researcher": {
         "model": "openai-codex/gpt-5.4-mini"

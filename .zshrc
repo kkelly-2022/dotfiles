@@ -10,7 +10,12 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 export BROWSER="/Applications/Firefox.app/Contents/MacOS/firefox"
 
 # Load local secrets (API keys, tokens, etc.) — not committed to git
-[[ -f ~/Developer/dotfiles/.env.local ]] && source ~/Developer/dotfiles/.env.local
+# Auto-export assignments so child processes inherit them.
+if [[ -f ~/Developer/dotfiles/.env.local ]]; then
+  set -a
+  source ~/Developer/dotfiles/.env.local
+  set +a
+fi
 
 # Quality of life
 setopt AUTO_CD              # Type a directory name to cd into it
@@ -403,31 +408,26 @@ refresh-apps() {
     echo "Using cached greenmask dump at $extracted"
   fi
 
-  (cd $SA_BACKEND && prisma-clean-migrations . && npm run db:refresh -- -g "$extracted" -w root -f && refresh-cleanup && strip-concurrent-migrations-around codegen-backend && npm i)
+  (cd $SA_BACKEND && prisma-clean-migrations . && npm run db:refresh -- -g "$extracted" -w root -f && refresh-cleanup && strip-concurrent-migrations-around codegen-backend && pnpm i)
   (cd $SA_FRONTEND && npm i)
   (cd $SA_ADMIN && npm i)
-  (cd $SA_DATACORE && uv sync && ENV=local uv run -m database.bootstrap --migrate)
+  (cd $SA_DATACORE && uv sync --locked --all-extras --dev && ENV=local uv run -m database.bootstrap --migrate)
 }
 
 # run-apps — Start backend, frontend, and admin in a zellij session
 # Each app gets its own pane with logs teed to ~/Developer/dotfiles/logs/sa-*.log
 # Usage: run-apps (attach with `zellij attach sa` if detached)
+# Dependency installs are handled by refresh-apps.
 SA_LOGS=~/Developer/dotfiles/logs
 run-apps() {
-  kill-apps && mkdir -p $SA_LOGS
+  zellij delete-session sa --force 2>/dev/null || true
+  mkdir -p $SA_LOGS
 
-  # Backend pnpm install runs alone — pnpm's symlink workers race under
-  # concurrent system load. The two npm installs can safely run in parallel
-  # since they have separate node_modules and don't share global state.
-  (cd $SA_BACKEND && pnpm i)
-  (cd $SA_FRONTEND && npm i) &
-  (cd $SA_ADMIN && npm i) &
-  wait
+  local layout_dir layout_file
+  layout_dir=$(mktemp -d "${TMPDIR:-/tmp}/sa-zellij-layout.XXXXXX") || return 1
+  layout_file="$layout_dir/layout.kdl"
 
-  local layout_file
-  layout_file=$(mktemp "${TMPDIR:-/tmp}/sa-zellij-layout.XXXXXX.kdl")
-
-  cat > "$layout_file" <<EOF
+  command cat > "$layout_file" <<EOF
 layout {
   pane split_direction="Vertical" {
     pane command="bash" {
@@ -446,14 +446,14 @@ layout {
 EOF
 
   zellij --new-session-with-layout "$layout_file" --session sa
-  rm -f "$layout_file"
+  rm -rf "$layout_dir"
 }
 
 alias logs-backend="tail -f -n 200 $SA_LOGS/backend.log"
 alias logs-frontend="tail -f -n 200 $SA_LOGS/frontend.log"
 alias logs-admin="tail -f -n 200 $SA_LOGS/admin.log"
 alias logs-all="tail -f -n 200 $SA_LOGS/backend.log $SA_LOGS/frontend.log $SA_LOGS/admin.log"
-alias kill-apps="zellij delete-session sa --force 2>/dev/null || true"
+kill-apps() { zellij delete-session sa --force 2>/dev/null || true; }
 
 # sync-repos — Pull and sync all repos at once
 # Fetches and pulls main across all State Affairs repos, runs gt sync,
