@@ -1,32 +1,52 @@
 {
+  "lastChangelogVersion": "0.79.6",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.5",
+  "defaultThinkingLevel": "medium",
+  "packages": [
+    {
+      "source": "npm:@plannotator/pi-extension",
+      "skills": []
+    },
+    "npm:pi-subagents",
+    "npm:@gotgenes/pi-permission-system",
+    "npm:@ollama/pi-web-search"
+  ],
+  "theme": "dark",
   "subagents": {
     "agentOverrides": {
       "scout": {
-        "model": "openai-codex/gpt-5.4-mini",
-      },
-      "researcher": {
-        "model": "openai-codex/gpt-5.4-mini",
+        "model": "ollama/gemma4:latest",
+        "fallbackModels": ["openai-codex/gpt-5.4-mini"],
+        "tools": ["read", "grep", "find", "ls", "bash"]
       },
       "delegate": {
-        "model": "openai-codex/gpt-5.4-mini",
+        "model": "ollama/gemma4:latest",
+        "fallbackModels": ["openai-codex/gpt-5.4-mini"],
+        "tools": ["read", "grep", "find", "ls"]
       },
       "context-builder": {
-        "model": "openai-codex/gpt-5.4",
+        "model": "ollama/gemma4:latest",
+        "fallbackModels": ["openai-codex/gpt-5.4"],
+        "tools": ["read", "grep", "find", "ls", "bash"]
+      },
+      "researcher": {
+        "model": "openai-codex/gpt-5.4-mini"
       },
       "reviewer": {
         "model": "openai-codex/gpt-5.4",
-        "thinking": "high",
+        "thinking": "high"
       },
       "worker": {
-        "model": "openai-codex/gpt-5.4",
+        "model": "openai-codex/gpt-5.4"
       },
       "planner": {
         "model": "openai-codex/gpt-5.5",
-        "thinking": "high",
+        "thinking": "high"
       },
       "oracle": {
         "model": "openai-codex/gpt-5.5",
-        "thinking": "high",
+        "thinking": "high"
       }
     }
   }

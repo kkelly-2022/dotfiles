@@ -20,11 +20,12 @@ commit code, modify/create PRs, or push/submit code without express consent from
 When querying Postgres, use psql with one of these connections.
 Passwords live in `~/.pgpass` — never echo or interpolate them.
 
-| Env   | Access     | Host                                                                   | User         | DB           |
-|-------|------------|------------------------------------------------------------------------|--------------|--------------|
-| local | read/write | localhost                                                              | postgres     | dev          |
-| dev   | READ-ONLY  | sa-pro-app-dev-postgres.chujk1z74fw5.us-east-1.rds.amazonaws.com       | kkelly_read  | pro-app-dev  |
-| prod  | READ-ONLY  | read-sa-pro-app-prod-postgres.chujk1z74fw5.us-east-1.rds.amazonaws.com | kkelly_read  | pro-app-prod |
+| Env       | Access     | Host                                                                   | User         | DB           |
+|-----------|------------|------------------------------------------------------------------------|--------------|--------------|
+| local     | read/write | localhost                                                              | postgres     | dev          |
+| dev       | READ-ONLY  | sa-pro-app-dev-postgres.chujk1z74fw5.us-east-1.rds.amazonaws.com       | kkelly_read  | pro-app-dev  |
+| prod      | READ-ONLY  | read-sa-pro-app-prod-postgres.chujk1z74fw5.us-east-1.rds.amazonaws.com | kkelly_read  | pro-app-prod |
+| datacore  | READ-ONLY  | dagster-pro.chujk1z74fw5.us-east-1.rds.amazonaws.com                   | dagster_read | datacore     |
 
 Default to **local**. Only touch dev/prod when explicitly asked, and never
 attempt writes there (the role would reject them, but don't try).
