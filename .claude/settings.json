@@ -92,7 +92,7 @@
       }
     }
   },
-  "effortLevel": "medium",
+  "effortLevel": "xhigh",
   "skipDangerousModePermissionPrompt": true,
   "verbose": true,
   "autoCompactEnabled": false,

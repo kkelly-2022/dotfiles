@@ -2,6 +2,15 @@
 
 We use `rg` and `fd` over `grep` and `find`.
 
+# Subagent Model Routing
+
+When dispatching subagents, pick the model by the kind of work (pass `model:` to the Agent tool, or `opts.model` in a Workflow):
+
+- **`haiku`** — read-only scouting: codebase search, "where is X", file/symbol location, broad fan-out exploration (e.g. the `Explore` agent), simple fact lookups. Anything that locates or summarizes without writing code.
+- **Session model (inherit / `opus`)** — everything else, especially writing or editing code, planning, code review, architecture, debugging, and any correctness-critical verification. Do NOT downgrade these.
+
+Conservative by default: only obvious scouting goes to `haiku`; when unsure, inherit the session model. Non-Anthropic models (GPT/Gemini) cannot be used per-subagent in Claude Code — `model:` accepts only Anthropic aliases/IDs.
+
 # Projects
 
 We have our work spread across several repos, all in `~/Developer/state-affairs`. Most of our work
