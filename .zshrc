@@ -420,17 +420,38 @@ gql-sync() {
   )
 }
 
-# refresh-cleanup — run pre-migration data fixes on the local dev DB.
-# Invoked by refresh-apps between snapshot restore and prisma migrate,
-# but safe to run standalone after a failed migration.
-refresh-cleanup() {
-  local sql_file="$DOTFILE_REPO/scripts/refresh-cleanup.sql"
+# refresh-backend-pre-migrate — run backend-specific data fixes on the local dev DB.
+# Invoked by refresh-apps between backend snapshot restore and Prisma migrations.
+refresh-backend-pre-migrate() {
+  local sql_file="$DOTFILE_REPO/scripts/refresh-backend-pre-migrate.sql"
   if [[ ! -f "$sql_file" ]]; then
-    echo "No cleanup file at $sql_file — skipping"
+    echo "No backend pre-migrate file at $sql_file — skipping"
     return 0
   fi
   PGPASSWORD=root psql -h localhost -p 5432 -U postgres -d dev \
     -v ON_ERROR_STOP=1 -f "$sql_file"
+}
+
+# refresh-backend-post-migrate — remove transient local-only backend migration hooks.
+# This must run before datacore/Alembic migrations touch the same local DB.
+refresh-backend-post-migrate() {
+  local sql_file="$DOTFILE_REPO/scripts/refresh-backend-post-migrate.sql"
+  if [[ ! -f "$sql_file" ]]; then
+    echo "No backend post-migrate file at $sql_file — skipping"
+    return 0
+  fi
+  PGPASSWORD=root psql -h localhost -p 5432 -U postgres -d dev \
+    -v ON_ERROR_STOP=1 -f "$sql_file"
+}
+
+refresh-backend-migrate() {
+  refresh-backend-pre-migrate || return
+
+  strip-concurrent-migrations-around codegen-backend
+  local migrate_status=$?
+
+  refresh-backend-post-migrate || return
+  return $migrate_status
 }
 
 # dev-sync — Migrate, generate, and codegen in one command
@@ -465,7 +486,7 @@ refresh-apps() {
     echo "Using cached greenmask dump at $extracted"
   fi
 
-  (cd $SA_BACKEND && prisma-clean-migrations . && npm run db:refresh -- -g "$extracted" -w root -f && refresh-cleanup && strip-concurrent-migrations-around codegen-backend && pnpm run proto:generate && pnpm i)
+  (cd $SA_BACKEND && prisma-clean-migrations . && npm run db:refresh -- -g "$extracted" -w root -f && refresh-backend-migrate && pnpm run proto:generate && pnpm i)
   (cd $SA_FRONTEND && npm i)
   (cd $SA_ADMIN && npm i)
   (cd $SA_DATACORE && uv sync --locked --all-extras --dev && ENV=local uv run -m database.bootstrap --migrate)
