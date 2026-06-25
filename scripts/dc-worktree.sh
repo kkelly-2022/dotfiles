@@ -8,9 +8,10 @@
 # deletes only wt/<name>; the real stack survives on its base.
 #
 # Usage:
-#   dc-worktree <name> [base]       Create .worktrees/<name> parked on wt/<name> off <base> (default main)
-#   dc-worktree --park <name>       Idle the worktree on its empty wt/<name> branch
-#   dc-worktree --rm [-f] <name>    Remove the worktree and delete wt/<name> (real branches untouched)
+#   dc-worktree <name> [base]          Create .worktrees/<name> parked on wt/<name> off <base> (default main)
+#   dc-worktree --park <name>          Idle the worktree on its empty wt/<name> branch
+#   dc-worktree --track-parked [base]  Track existing wt/* parking branches in Graphite (default main)
+#   dc-worktree --rm [-f] <name>       Remove the worktree and delete wt/<name> (real branches untouched)
 #
 # <name> may be a bare slug or a path; its basename is used so the worktree
 # always lands under .worktrees/.
@@ -22,7 +23,7 @@ WT_DIR="$REPO_ROOT/.worktrees"
 SYMLINK_PATHS=(.env .env.local output)
 
 usage() {
-  sed -n '3,16p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '3,17p' "$0" | sed 's/^# \{0,1\}//'
   exit "${1:-1}"
 }
 
@@ -38,6 +39,78 @@ slug() {
   printf '%s' "${1##*/}"
 }
 
+gt_noninteractive() {
+  GIT_EDITOR=: VISUAL=: EDITOR=: gt --no-interactive "$@"
+}
+
+require_tracked_branch() {
+  local branch
+  branch="${1:?branch required}"
+
+  if ! git -C "$REPO_ROOT" show-ref --verify --quiet "refs/heads/$branch"; then
+    echo "dc-worktree: branch '$branch' does not exist" >&2
+    exit 1
+  fi
+  if ! (cd "$REPO_ROOT" && gt_noninteractive branch info "$branch" >/dev/null 2>&1); then
+    echo "dc-worktree: Graphite is not tracking branch '$branch'" >&2
+    echo "dc-worktree: run 'gt track $branch --parent <tracked-parent>' first, or choose a tracked base" >&2
+    exit 1
+  fi
+}
+
+track_parking_branch() {
+  local branch parent
+  branch="${1:?branch required}"
+  parent="${2:?parent required}"
+
+  if (cd "$REPO_ROOT" && gt_noninteractive branch info "$branch" >/dev/null 2>&1); then
+    return 0
+  fi
+
+  echo "Tracking parking branch $branch with Graphite (parent $parent)…"
+  (cd "$REPO_ROOT" && gt_noninteractive track "$branch" --parent "$parent")
+}
+
+track_parked_branches() {
+  local parent
+  parent="${1:-main}"
+  require_tracked_branch "$parent"
+
+  local branches=()
+  local branch
+  while IFS= read -r branch; do
+    branches+=("$branch")
+  done < <(git -C "$REPO_ROOT" for-each-ref --format='%(refname:short)' refs/heads/wt/ | sort)
+
+  if [[ ${#branches[@]} -eq 0 ]]; then
+    echo "dc-worktree: no wt/* parking branches found" >&2
+    return 1
+  fi
+
+  local tracked=() already=() failed=()
+  for branch in "${branches[@]}"; do
+    if (cd "$REPO_ROOT" && gt_noninteractive branch info "$branch" >/dev/null 2>&1); then
+      already+=("$branch")
+      continue
+    fi
+
+    if track_parking_branch "$branch" "$parent"; then
+      tracked+=("$branch")
+    else
+      failed+=("$branch")
+    fi
+  done
+
+  echo ""
+  echo "Tracked ${#tracked[@]} parking branch(es); ${#already[@]} already tracked."
+  [[ ${#tracked[@]} -gt 0 ]] && printf '  %s\n' "${tracked[@]}"
+  if [[ ${#failed[@]} -gt 0 ]]; then
+    echo "Failed to track ${#failed[@]} parking branch(es):" >&2
+    printf '  %s\n' "${failed[@]}" >&2
+    return 1
+  fi
+}
+
 create_worktree() {
   local name base wt_path branch
   name=$(slug "${1:?name required}")
@@ -49,10 +122,7 @@ create_worktree() {
     echo "dc-worktree: worktree already exists at $wt_path" >&2
     exit 1
   fi
-  if ! git -C "$REPO_ROOT" show-ref --verify --quiet "refs/heads/$base"; then
-    echo "dc-worktree: base branch '$base' does not exist" >&2
-    exit 1
-  fi
+  require_tracked_branch "$base"
   if git -C "$REPO_ROOT" show-ref --verify --quiet "refs/heads/$branch"; then
     echo "dc-worktree: parking branch '$branch' already exists" >&2
     exit 1
@@ -70,7 +140,7 @@ create_worktree() {
     fi
   done
 
-  ( cd "$wt_path" && gt track --parent "$base" )
+  track_parking_branch "$branch" "$base"
 
   echo ""
   echo "Building worktree venv (uv sync --locked --all-extras --dev)…"
@@ -158,6 +228,10 @@ main() {
     --park)
       shift
       park_worktree "$@"
+      ;;
+    --track-parked)
+      shift
+      track_parked_branches "$@"
       ;;
     --rm)
       shift

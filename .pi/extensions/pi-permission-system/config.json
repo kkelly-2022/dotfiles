@@ -16,17 +16,6 @@
     },
     "bash": {
       "*": "allow",
-      "command *": "ask",
-      "builtin *": "ask",
-      "env *": "ask",
-      "sh -c *": "ask",
-      "bash -c *": "ask",
-      "bash -lc *": "ask",
-      "zsh -c *": "ask",
-      "zsh -lc *": "ask",
-      "fish -c *": "ask",
-      "xargs *": "ask",
-      "find * -exec *": "ask",
       "git push *": {
         "action": "deny",
         "reason": "Remote pushes must be initiated by the user outside Pi."

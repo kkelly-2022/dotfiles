@@ -152,6 +152,63 @@ gt-stack-stats() {
     "$total_files" "+$total_ins" "-$total_del" "$total"
 }
 
+# gt-find-worktrees — list worktrees and the Graphite branches they have checked out
+# Usage:
+#   gt-find-worktrees [gt ls args...]
+#
+# Uses `gt ls` ordering, then cross-references Git's worktree metadata to show
+# each listed branch's worktree name. With no args, includes all trunks and
+# untracked branches visible to Graphite.
+gt-find-worktrees() {
+  local repo_root
+  repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || {
+    echo "gt-find-worktrees: must be run inside a Git repository" >&2
+    return 1
+  }
+
+  local -A worktree_by_branch
+  local line worktree branch
+  while IFS= read -r line; do
+    case "$line" in
+      worktree\ *)
+        worktree="${line#worktree }"
+        ;;
+      branch\ refs/heads/*)
+        branch="${line#branch refs/heads/}"
+        worktree_by_branch[$branch]="$worktree"
+        ;;
+    esac
+  done < <(git -C "$repo_root" worktree list --porcelain 2>/dev/null)
+
+  local -a gt_args rows found
+  if [[ $# -eq 0 ]]; then
+    gt_args=(--all --show-untracked)
+  else
+    gt_args=("$@")
+  fi
+
+  rows=("${(@f)$(gt ls --no-interactive "${gt_args[@]}" 2>/dev/null \
+    | sed -E $'s/\\x1b\\[[0-9;]*m//g; s/^[^[:alnum:]_.\\/-]*//')}")
+
+  local row clean_ref wt_path wt_name
+  for row in "${rows[@]}"; do
+    [[ -z "$row" ]] && continue
+    clean_ref=$(printf "%s\n" "$row" | sed -E 's/([[:space:]]+\([^)]*\))+[[:space:]]*$//')
+    [[ -z "$clean_ref" ]] && continue
+    wt_path="${worktree_by_branch[$clean_ref]}"
+    [[ -z "$wt_path" ]] && continue
+    wt_name="${wt_path:t}"
+    found+=("${wt_name}"$'\t'"${clean_ref}")
+  done
+
+  if [[ ${#found[@]} -eq 0 ]]; then
+    echo "gt-find-worktrees: no gt ls branches are checked out in worktrees" >&2
+    return 1
+  fi
+
+  printf '%s\n' "${found[@]}" | column -t -s $'\t'
+}
+
 # gt-restack-all — restack every clean worktree in the current repo
 # Usage:
 #   gt-restack-all
@@ -408,7 +465,7 @@ refresh-apps() {
     echo "Using cached greenmask dump at $extracted"
   fi
 
-  (cd $SA_BACKEND && prisma-clean-migrations . && npm run db:refresh -- -g "$extracted" -w root -f && refresh-cleanup && strip-concurrent-migrations-around codegen-backend && pnpm i)
+  (cd $SA_BACKEND && prisma-clean-migrations . && npm run db:refresh -- -g "$extracted" -w root -f && refresh-cleanup && strip-concurrent-migrations-around codegen-backend && pnpm run proto:generate && pnpm i)
   (cd $SA_FRONTEND && npm i)
   (cd $SA_ADMIN && npm i)
   (cd $SA_DATACORE && uv sync --locked --all-extras --dev && ENV=local uv run -m database.bootstrap --migrate)
@@ -505,9 +562,10 @@ sync-repos() {
 
 # dc-worktree — create / park / remove a Graphite worktree under datacore/.worktrees.
 # Logic lives in the versioned script; this is a thin wrapper.
-#   dc-worktree <name> [base]     create .worktrees/<name> parked on wt/<name> off <base> (default main)
-#   dc-worktree --park <name>     idle the worktree on its empty wt/<name> branch
-#   dc-worktree --rm [-f] <name>  remove the worktree and delete wt/<name>
+#   dc-worktree <name> [base]          create .worktrees/<name> parked on wt/<name> off <base> (default main)
+#   dc-worktree --park <name>          idle the worktree on its empty wt/<name> branch
+#   dc-worktree --track-parked [base]  track existing wt/* parking branches in Graphite (default main)
+#   dc-worktree --rm [-f] <name>       remove the worktree and delete wt/<name>
 dc-worktree() {
   "$DOTFILE_REPO/scripts/dc-worktree.sh" "$@"
 }
