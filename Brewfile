@@ -50,8 +50,6 @@ brew "postgresql@17"
 brew "redis"
 
 # ── Workflow ──────────────────────────────────────────────
-brew "beads", link: false
-brew "steveyegge/beads/bd"
 brew "withgraphite/tap/graphite"
 
 # ── Casks — Apps ──────────────────────────────────────────

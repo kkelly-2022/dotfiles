@@ -486,7 +486,7 @@ refresh-apps() {
     echo "Using cached greenmask dump at $extracted"
   fi
 
-  (cd $SA_BACKEND && prisma-clean-migrations . && npm run db:refresh -- -g "$extracted" -w root -f && refresh-backend-migrate && pnpm run proto:generate && pnpm i)
+  (cd $SA_BACKEND && SKIP_POSTINSTALL=1 pnpm i && prisma-clean-migrations . && npm run db:refresh -- -g "$extracted" -w root -f && refresh-backend-migrate && pnpm run proto:generate && pnpm run generate:frontend-resources && pnpm run generate:connect-apis)
   (cd $SA_FRONTEND && npm i)
   (cd $SA_ADMIN && npm i)
   (cd $SA_DATACORE && uv sync --locked --all-extras --dev && ENV=local uv run -m database.bootstrap --migrate)

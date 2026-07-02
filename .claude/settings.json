@@ -72,6 +72,10 @@
     ],
     "defaultMode": "auto"
   },
+  "statusLine": {
+    "type": "command",
+    "command": "bash /Users/kevinkelly/.claude/statusline-command.sh"
+  },
   "enabledPlugins": {
     "code-review@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
@@ -99,8 +103,5 @@
   "preferredNotifChannel": "notifications_disabled",
   "autoCompactEnabled": false,
   "skipAutoPermissionPrompt": true,
-  "statusLine": {
-    "type": "command",
-    "command": "bash /Users/kevinkelly/.claude/statusline-command.sh"
-  }
+  "skipWorkflowUsageWarning": true
 }

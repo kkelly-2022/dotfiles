@@ -3,6 +3,109 @@
 -- Add new entries above the existing ones; remove an entry once the migration
 -- it unblocks has shipped to prod (so the snapshot itself is clean).
 
+-- 20260629145904_user_noun_relevancy_noun_ref_not_null
+-- The refresh script runs before pending Prisma migrations. If the snapshot
+-- predates 20260625161936, noun_ref_id does not exist yet, so install a
+-- local-only DDL hook that runs as soon as the column is created. If the column
+-- already exists, the final SELECT runs it immediately.
+CREATE OR REPLACE FUNCTION state_affairs_dev.refresh_backend_backfill_user_noun_relevancy_noun_ref()
+RETURNS integer AS $$
+DECLARE
+  source record;
+  changed integer;
+  total_changed integer := 0;
+BEGIN
+  IF to_regclass('state_affairs_dev.user_noun_relevancy') IS NULL
+     OR NOT EXISTS (
+       SELECT 1
+       FROM information_schema.columns
+       WHERE table_schema = 'state_affairs_dev'
+         AND table_name = 'user_noun_relevancy'
+         AND column_name = 'noun_ref_id'
+     ) THEN
+    RETURN 0;
+  END IF;
+
+  FOR source IN
+    SELECT * FROM (VALUES
+      ('article', 'article'),
+      ('bill', 'bill'),
+      ('hearing', 'hearing'),
+      ('tweets', 'tweets')
+    ) AS source_tables(noun_type, table_name)
+  LOOP
+    IF to_regclass(format('state_affairs_dev.%I', source.table_name)) IS NULL THEN
+      CONTINUE;
+    END IF;
+
+    IF NOT EXISTS (
+      SELECT 1
+      FROM information_schema.columns
+      WHERE table_schema = 'state_affairs_dev'
+        AND table_name = source.table_name
+        AND column_name = 'noun_id'
+    ) THEN
+      CONTINUE;
+    END IF;
+
+    EXECUTE format($sql$
+      UPDATE state_affairs_dev.user_noun_relevancy AS unr
+      SET noun_ref_id = src.noun_id
+      FROM state_affairs_dev.%I AS src
+      WHERE unr.noun_ref_id IS NULL
+        AND unr.noun_type::text = %L
+        AND unr.noun_id = src.id
+        AND src.noun_id IS NOT NULL
+    $sql$, source.table_name, source.noun_type);
+
+    GET DIAGNOSTICS changed = ROW_COUNT;
+    total_changed := total_changed + changed;
+    IF changed > 0 THEN
+      RAISE NOTICE 'Backfilled user_noun_relevancy.noun_ref_id for % % row(s)', source.noun_type, changed;
+    END IF;
+  END LOOP;
+
+  DELETE FROM state_affairs_dev.user_noun_relevancy
+  WHERE noun_ref_id IS NULL;
+
+  GET DIAGNOSTICS changed = ROW_COUNT;
+  total_changed := total_changed + changed;
+  IF changed > 0 THEN
+    RAISE NOTICE 'Deleted % user_noun_relevancy row(s) still missing noun_ref_id', changed;
+  END IF;
+
+  RETURN total_changed;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION state_affairs_dev.refresh_backend_backfill_user_noun_relevancy_noun_ref_after_ddl()
+RETURNS event_trigger AS $$
+DECLARE
+  ddl_command record;
+BEGIN
+  FOR ddl_command IN SELECT * FROM pg_event_trigger_ddl_commands()
+  LOOP
+    IF ddl_command.schema_name = 'state_affairs_dev' THEN
+      PERFORM state_affairs_dev.refresh_backend_backfill_user_noun_relevancy_noun_ref();
+      RETURN;
+    END IF;
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP EVENT TRIGGER IF EXISTS refresh_backend_backfill_user_noun_relevancy_noun_ref_after_ddl;
+CREATE EVENT TRIGGER refresh_backend_backfill_user_noun_relevancy_noun_ref_after_ddl
+  ON ddl_command_end
+  EXECUTE FUNCTION state_affairs_dev.refresh_backend_backfill_user_noun_relevancy_noun_ref_after_ddl();
+
+SELECT state_affairs_dev.refresh_backend_backfill_user_noun_relevancy_noun_ref();
+
+-- If a prior local migrate run failed while validating this temporary check,
+-- clear the partial DDL so Prisma can replay the migration cleanly after the
+-- failed migration is resolved/rolled back.
+ALTER TABLE IF EXISTS state_affairs_dev.user_noun_relevancy
+  DROP CONSTRAINT IF EXISTS user_noun_relevancy_noun_ref_id_not_null;
+
 -- 20260622000001_make_noun_id_not_null
 -- Older snapshots can have source rows whose noun_id was never backfilled after
 -- the noun table/trigger migration. This cleanup runs immediately when the noun
