@@ -398,6 +398,40 @@ prisma-clean-migrations() {
   echo "Removed $removed empty migration(s)"
 }
 
+# Discard backend git changes only when every changed path is a Prisma migration.
+# This cleans up local refresh/migrate artifacts without risking unrelated work.
+discard-backend-migration-only-changes() {
+  local repo="$SA_BACKEND"
+  local changed_output
+  local -a changed_paths non_migration_paths
+
+  changed_output=$({
+    git -C "$repo" diff --name-only
+    git -C "$repo" diff --name-only --cached
+    git -C "$repo" ls-files --others --exclude-standard
+  } | sort -u) || return
+
+  [[ -z "$changed_output" ]] && return 0
+  changed_paths=("${(@f)changed_output}")
+
+  non_migration_paths=()
+  local path
+  for path in "${changed_paths[@]}"; do
+    [[ "$path" == src/prisma/migrations/* ]] || non_migration_paths+=("$path")
+  done
+
+  if (( ${#non_migration_paths[@]} > 0 )); then
+    echo "Backend has non-migration changes; refusing to discard anything:" >&2
+    printf '  %s\n' "${non_migration_paths[@]}" >&2
+    return 1
+  fi
+
+  echo "Discarding backend migration-only changes:"
+  printf '  %s\n' "${changed_paths[@]}"
+  git -C "$repo" restore --staged --worktree -- src/prisma/migrations || return
+  git -C "$repo" clean -fd -- src/prisma/migrations || return
+}
+
 codegen-backend() {
   (
     cd $SA_BACKEND &&
@@ -445,6 +479,7 @@ refresh-backend-post-migrate() {
 }
 
 refresh-backend-migrate() {
+  discard-backend-migration-only-changes || return
   refresh-backend-pre-migrate || return
 
   strip-concurrent-migrations-around codegen-backend
@@ -486,7 +521,7 @@ refresh-apps() {
     echo "Using cached greenmask dump at $extracted"
   fi
 
-  (cd $SA_BACKEND && SKIP_POSTINSTALL=1 pnpm i && prisma-clean-migrations . && npm run db:refresh -- -g "$extracted" -w root -f && refresh-backend-migrate && pnpm run proto:generate && pnpm run generate:frontend-resources && pnpm run generate:connect-apis)
+  (cd $SA_BACKEND && SKIP_POSTINSTALL=1 pnpm i && discard-backend-migration-only-changes && prisma-clean-migrations . && discard-backend-migration-only-changes && npm run db:refresh -- -g "$extracted" -w root -f && refresh-backend-migrate && pnpm run proto:generate && pnpm run generate:frontend-resources && pnpm run generate:connect-apis)
   (cd $SA_FRONTEND && npm i)
   (cd $SA_ADMIN && npm i)
   (cd $SA_DATACORE && uv sync --locked --all-extras --dev && ENV=local uv run -m database.bootstrap --migrate)

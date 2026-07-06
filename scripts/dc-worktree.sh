@@ -20,7 +20,7 @@ set -euo pipefail
 
 REPO_ROOT="${SA_DATACORE:-$HOME/Developer/state-affairs/datacore}"
 WT_DIR="$REPO_ROOT/.worktrees"
-SYMLINK_PATHS=(.env .env.local output)
+SYMLINK_PATHS=(.env .env.local output .claude .agent .agents)
 
 usage() {
   sed -n '3,17p' "$0" | sed 's/^# \{0,1\}//'
@@ -111,6 +111,28 @@ track_parked_branches() {
   fi
 }
 
+link_shared_path() {
+  local wt_path p source dest rel_target
+  wt_path="${1:?worktree path required}"
+  p="${2:?path required}"
+  source="$REPO_ROOT/$p"
+  dest="$wt_path/$p"
+  rel_target="../../$p"
+
+  [[ -e "$source" || -L "$source" ]] || return 0
+
+  if [[ -L "$dest" ]]; then
+    local current_target
+    current_target=$(readlink "$dest")
+    [[ "$current_target" == "$rel_target" ]] && return 0
+    rm "$dest"
+  elif [[ -e "$dest" ]]; then
+    rm -rf "$dest"
+  fi
+
+  ln -s "$rel_target" "$dest"
+}
+
 create_worktree() {
   local name base wt_path branch
   name=$(slug "${1:?name required}")
@@ -135,9 +157,7 @@ create_worktree() {
 
   local p
   for p in "${SYMLINK_PATHS[@]}"; do
-    if [[ -e "$REPO_ROOT/$p" ]]; then
-      ln -s "../../$p" "$wt_path/$p"
-    fi
+    link_shared_path "$wt_path" "$p"
   done
 
   track_parking_branch "$branch" "$base"

@@ -72,6 +72,7 @@
     ],
     "defaultMode": "auto"
   },
+  "model": "sonnet",
   "statusLine": {
     "type": "command",
     "command": "bash /Users/kevinkelly/.claude/statusline-command.sh"
@@ -96,12 +97,12 @@
       }
     }
   },
-  "effortLevel": "xhigh",
+  "effortLevel": "medium",
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
   "verbose": true,
   "preferredNotifChannel": "notifications_disabled",
   "autoCompactEnabled": false,
-  "skipAutoPermissionPrompt": true,
-  "skipWorkflowUsageWarning": true
+  "skipAutoPermissionPrompt": true
 }
