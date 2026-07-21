@@ -22,6 +22,20 @@ BEGIN
        WHERE table_schema = 'state_affairs_dev'
          AND table_name = 'user_noun_relevancy'
          AND column_name = 'noun_ref_id'
+     )
+     OR NOT EXISTS (
+       SELECT 1
+       FROM information_schema.columns
+       WHERE table_schema = 'state_affairs_dev'
+         AND table_name = 'user_noun_relevancy'
+         AND column_name = 'noun_type'
+     )
+     OR NOT EXISTS (
+       SELECT 1
+       FROM information_schema.columns
+       WHERE table_schema = 'state_affairs_dev'
+         AND table_name = 'user_noun_relevancy'
+         AND column_name = 'noun_id'
      ) THEN
     RETURN 0;
   END IF;

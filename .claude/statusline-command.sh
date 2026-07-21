@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Claude Code status line — mirrors Starship Catppuccin Latte prompt elements.
 # Receives JSON session data on stdin; prints one right-aligned status line.
-# Layout (left→right): time | dir + branch | model level [vim] | $cost | rate-limit usage
-# (with reset times) | context % + tokens. Context and each usage window are
-# traffic-light colored (green ≤50%, yellow >50%, red >75%). The whole line is
-# right-aligned to $COLUMNS (set by Claude Code v2.1.153+).
+# Layout (left→right): time | model level [vim] | $cost | rate-limit usage
+# (with reset times) | context % + tokens | dir + branch. Context and each
+# usage window are traffic-light colored (green ≤50%, yellow >50%, red >75%).
+# The whole line is right-aligned to $COLUMNS (set by Claude Code v2.1.153+).
 
 input=$(cat)
 
@@ -170,8 +170,6 @@ fi
 sep=" | "
 plain="$clock"
 disp="$clock"
-plain="${plain:+$plain$sep}$left"
-disp="${disp:+$disp$sep}$left"
 if [ -n "$model_group" ]; then
     plain="${plain:+$plain$sep}$model_group"
     disp="${disp:+$disp$sep}$model_group"
@@ -188,6 +186,8 @@ if [ -n "$context_plain" ]; then
     plain="${plain:+$plain$sep}$context_plain"
     disp="${disp:+$disp$sep}$context_disp"
 fi
+plain="${plain:+$plain$sep}$left"
+disp="${disp:+$disp$sep}$left"
 
 # --- right-align to the terminal width ($COLUMNS), measuring the plain string ---
 cols="${COLUMNS:-0}"

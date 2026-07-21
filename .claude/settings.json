@@ -1,4 +1,7 @@
 {
+  "env": {
+    "CLAUDE_AFK_TIMEOUT_MS": "86400000"
+  },
   "permissions": {
     "allow": [
       "WebFetch(domain:docs.sqlfluff.com)",

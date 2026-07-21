@@ -114,6 +114,7 @@
     "datacore",
     "Datom",
     "datoms",
+    "Debezium",
     "dotenv",
     "ENRICHABLE",
     "firstparty",
@@ -138,12 +139,13 @@
     "sessionmaker",
     "sqlacodegen",
     "sqlalchemy",
+    "stateaffairs",
     "tsrange",
     "upserted",
     "upserts",
     "uuidv",
     "venvs",
-    "Votedetail",
+    "Votedetail"
   ],
   // ── GitLens ──────────────────────────────────────────
   "workbench.editorAssociations": [

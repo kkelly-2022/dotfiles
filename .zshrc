@@ -415,9 +415,9 @@ discard-backend-migration-only-changes() {
   changed_paths=("${(@f)changed_output}")
 
   non_migration_paths=()
-  local path
-  for path in "${changed_paths[@]}"; do
-    [[ "$path" == src/prisma/migrations/* ]] || non_migration_paths+=("$path")
+  local changed_path
+  for changed_path in "${changed_paths[@]}"; do
+    [[ "$changed_path" == src/prisma/migrations/* ]] || non_migration_paths+=("$changed_path")
   done
 
   if (( ${#non_migration_paths[@]} > 0 )); then
@@ -432,10 +432,13 @@ discard-backend-migration-only-changes() {
   git -C "$repo" clean -fd -- src/prisma/migrations || return
 }
 
+# Greenmask restores include a migration ledger that can differ from the current
+# checkout.  The local DB is disposable, so synchronize it with the checked-out
+# Prisma schema rather than asking `migrate dev` to reconcile that ledger.
 codegen-backend() {
   (
     cd $SA_BACKEND &&
-    npm run prisma:migrate &&
+    npx prisma db push --accept-data-loss &&
     npx prisma format &&
     npm run prisma:generate &&
     npm run generate:schema
@@ -482,11 +485,9 @@ refresh-backend-migrate() {
   discard-backend-migration-only-changes || return
   refresh-backend-pre-migrate || return
 
-  strip-concurrent-migrations-around codegen-backend
-  local migrate_status=$?
+  codegen-backend || return
 
-  refresh-backend-post-migrate || return
-  return $migrate_status
+  refresh-backend-post-migrate
 }
 
 # dev-sync — Migrate, generate, and codegen in one command
@@ -521,10 +522,10 @@ refresh-apps() {
     echo "Using cached greenmask dump at $extracted"
   fi
 
-  (cd $SA_BACKEND && SKIP_POSTINSTALL=1 pnpm i && discard-backend-migration-only-changes && prisma-clean-migrations . && discard-backend-migration-only-changes && npm run db:refresh -- -g "$extracted" -w root -f && refresh-backend-migrate && pnpm run proto:generate && pnpm run generate:frontend-resources && pnpm run generate:connect-apis)
-  (cd $SA_FRONTEND && npm i)
-  (cd $SA_ADMIN && npm i)
-  (cd $SA_DATACORE && uv sync --locked --all-extras --dev && ENV=local uv run -m database.bootstrap --migrate)
+  (cd $SA_BACKEND && SKIP_POSTINSTALL=1 pnpm i && discard-backend-migration-only-changes && prisma-clean-migrations . && discard-backend-migration-only-changes && npm run db:refresh -- -g "$extracted" -w root -f && refresh-backend-migrate && pnpm run proto:generate && pnpm run kafka:setup-local && pnpm run generate:frontend-resources && pnpm run generate:connect-apis) || return
+  (cd $SA_FRONTEND && npm i) || return
+  (cd $SA_ADMIN && npm i) || return
+  (cd $SA_DATACORE && uv sync --locked --all-extras --dev && ENV=local uv run -m database.bootstrap --migrate) || return
 }
 
 # run-apps — Start backend, frontend, and admin in a zellij session
@@ -551,7 +552,7 @@ layout {
         args "-lc" "until curl -sf http://localhost:3000/api/health > /dev/null 2>&1; do sleep 2; done; cd $SA_FRONTEND && npm run dev 2>&1 | tee $SA_LOGS/frontend.log"
       }
       pane command="bash" {
-        args "-lc" "until curl -sf http://localhost:3000/api/health > /dev/null 2>&1; do sleep 2; done; cd $SA_ADMIN && npm run dev 2>&1 | tee $SA_LOGS/admin.log"
+        args "-lc" "until curl -sf http://localhost:3000/api/health > /dev/null 2>&1; do sleep 2; done; cd $SA_ADMIN && npm run dev:local 2>&1 | tee $SA_LOGS/admin.log"
       }
     }
   }
