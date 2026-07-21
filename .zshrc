@@ -9,6 +9,10 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 
 export BROWSER="/Applications/Firefox.app/Contents/MacOS/firefox"
 
+# npm peer dependency resolution — some packages (e.g. @emoji-mart/react) lag
+# behind current React majors on their peerDependencies ranges
+export NPM_CONFIG_LEGACY_PEER_DEPS=true
+
 # Load local secrets (API keys, tokens, etc.) — not committed to git
 # Auto-export assignments so child processes inherit them.
 if [[ -f ~/Developer/dotfiles/.env.local ]]; then
@@ -384,67 +388,6 @@ strip-concurrent-migrations-around() {
   return $exit_code
 }
 
-prisma-clean-migrations() {
-  local dir="${1:-.}/src/prisma/migrations"
-  [[ ! -d "$dir" ]] && echo "No migrations dir at $dir" && return 1
-  local removed=0
-  for d in "$dir"/*/; do
-    if [[ ! -s "$d/migration.sql" ]]; then
-      echo "Removing $(basename "$d")"
-      rm -rf "$d"
-      ((removed++))
-    fi
-  done
-  echo "Removed $removed empty migration(s)"
-}
-
-# Discard backend git changes only when every changed path is a Prisma migration.
-# This cleans up local refresh/migrate artifacts without risking unrelated work.
-discard-backend-migration-only-changes() {
-  local repo="$SA_BACKEND"
-  local changed_output
-  local -a changed_paths non_migration_paths
-
-  changed_output=$({
-    git -C "$repo" diff --name-only
-    git -C "$repo" diff --name-only --cached
-    git -C "$repo" ls-files --others --exclude-standard
-  } | sort -u) || return
-
-  [[ -z "$changed_output" ]] && return 0
-  changed_paths=("${(@f)changed_output}")
-
-  non_migration_paths=()
-  local changed_path
-  for changed_path in "${changed_paths[@]}"; do
-    [[ "$changed_path" == src/prisma/migrations/* ]] || non_migration_paths+=("$changed_path")
-  done
-
-  if (( ${#non_migration_paths[@]} > 0 )); then
-    echo "Backend has non-migration changes; refusing to discard anything:" >&2
-    printf '  %s\n' "${non_migration_paths[@]}" >&2
-    return 1
-  fi
-
-  echo "Discarding backend migration-only changes:"
-  printf '  %s\n' "${changed_paths[@]}"
-  git -C "$repo" restore --staged --worktree -- src/prisma/migrations || return
-  git -C "$repo" clean -fd -- src/prisma/migrations || return
-}
-
-# Greenmask restores include a migration ledger that can differ from the current
-# checkout.  The local DB is disposable, so synchronize it with the checked-out
-# Prisma schema rather than asking `migrate dev` to reconcile that ledger.
-codegen-backend() {
-  (
-    cd $SA_BACKEND &&
-    npx prisma db push --accept-data-loss &&
-    npx prisma format &&
-    npm run prisma:generate &&
-    npm run generate:schema
-  )
-}
-
 gql-sync() {
   (
     cd $SA_BACKEND &&
@@ -457,75 +400,10 @@ gql-sync() {
   )
 }
 
-# refresh-backend-pre-migrate — run backend-specific data fixes on the local dev DB.
-# Invoked by refresh-apps between backend snapshot restore and Prisma migrations.
-refresh-backend-pre-migrate() {
-  local sql_file="$DOTFILE_REPO/scripts/refresh-backend-pre-migrate.sql"
-  if [[ ! -f "$sql_file" ]]; then
-    echo "No backend pre-migrate file at $sql_file — skipping"
-    return 0
-  fi
-  PGPASSWORD=root psql -h localhost -p 5432 -U postgres -d dev \
-    -v ON_ERROR_STOP=1 -f "$sql_file"
-}
-
-# refresh-backend-post-migrate — remove transient local-only backend migration hooks.
-# This must run before datacore/Alembic migrations touch the same local DB.
-refresh-backend-post-migrate() {
-  local sql_file="$DOTFILE_REPO/scripts/refresh-backend-post-migrate.sql"
-  if [[ ! -f "$sql_file" ]]; then
-    echo "No backend post-migrate file at $sql_file — skipping"
-    return 0
-  fi
-  PGPASSWORD=root psql -h localhost -p 5432 -U postgres -d dev \
-    -v ON_ERROR_STOP=1 -f "$sql_file"
-}
-
-refresh-backend-migrate() {
-  discard-backend-migration-only-changes || return
-  refresh-backend-pre-migrate || return
-
-  codegen-backend || return
-
-  refresh-backend-post-migrate
-}
-
-# dev-sync — Migrate, generate, and codegen in one command
-# Runs backend migrations + Prisma generate, then triggers GraphQL codegen
-# across frontend, admin, and mobile (if the backend server is running).
-#
-# Pass --cached to reuse the previously downloaded/extracted greenmask
-# dump at ~/.cache/sa-greenmask/extracted (falls back to a fresh
-# download if the cache is missing). Without --cached, always refetches
-# from S3 and overwrites the cache.
+# refresh-apps — Refresh local State Affairs dependencies and database state.
+# Implementation lives in the versioned script so it can run outside an interactive shell.
 refresh-apps() {
-  local use_cache=false
-  [[ "$1" == "--cached" ]] && use_cache=true && shift
-
-  local cache_dir="$HOME/.cache/sa-greenmask"
-  local extracted="$cache_dir/extracted"
-  local tarball="$cache_dir/greenmask_dump.tar.gz"
-  local s3_path="s3://sa-rds-dev-dump/greenmask_dump.tar.gz"
-
-  if ! $use_cache || [[ ! -d "$extracted/dumps" ]]; then
-    mkdir -p "$cache_dir"
-    rm -rf "$extracted" && mkdir -p "$extracted"
-    echo "Downloading greenmask dump from S3..."
-    aws s3 cp "$s3_path" "$tarball" || return 1
-    tar -xzf "$tarball" -C "$extracted" || return 1
-    if [[ ! -d "$extracted/dumps" && -d "$extracted/greenmask/dumps" ]]; then
-      mv "$extracted/greenmask"/* "$extracted/" && rmdir "$extracted/greenmask"
-    fi
-    [[ ! -f "$extracted/greenmask" ]] && cp "$SA_BACKEND/.infra/greenmask/greenmask" "$extracted/"
-    [[ ! -f "$extracted/config.yml" ]] && cp "$SA_BACKEND/.infra/greenmask/config.yml" "$extracted/" 2>/dev/null || true
-  else
-    echo "Using cached greenmask dump at $extracted"
-  fi
-
-  (cd $SA_BACKEND && SKIP_POSTINSTALL=1 pnpm i && discard-backend-migration-only-changes && prisma-clean-migrations . && discard-backend-migration-only-changes && npm run db:refresh -- -g "$extracted" -w root -f && refresh-backend-migrate && pnpm run proto:generate && pnpm run kafka:setup-local && pnpm run generate:frontend-resources && pnpm run generate:connect-apis) || return
-  (cd $SA_FRONTEND && npm i) || return
-  (cd $SA_ADMIN && npm i) || return
-  (cd $SA_DATACORE && uv sync --locked --all-extras --dev && ENV=local uv run -m database.bootstrap --migrate) || return
+  "$DOTFILE_REPO/scripts/refresh-apps.zsh" "$@"
 }
 
 # run-apps — Start backend, frontend, and admin in a zellij session
